@@ -1,0 +1,66 @@
+var return_file_lines = function(file_name){
+    var fs = require.call(null, 'fs');
+    //var fileContents = fs.readFileSync('input.txt','utf8');
+    console.error(file_name); 
+    //var fileContents = fs.readFileSync(file_name.toString, utf8');
+    var file_lines = fileContents.toString().split('\n');
+    return file_lines;
+};
+
+var car = function (array ) {
+if (array.length == 0) {
+    console.error("------nothing in the array to get the car for");
+    return 0;
+}
+return array[0];
+}
+
+var cdr = function(array) {
+  if (array.length == 0) {
+    console.error("-----nothing in the array to get the cdr for");
+    return 0;
+  }
+  return array.slice(1, array.length);
+}
+
+
+var for_each = function(k, array) {
+  if (cdr(array).length == 0) {
+     k(car(array));
+     return 0;
+  }else{
+      k(car(array));
+      for_each(k, cdr(array));
+      return 0;
+  }
+}
+
+var print_stuff = function(x) {
+    console.log(x);
+}
+
+
+for_each(print_stuff, [3,4,7,8]);
+return_file_lines('input.txt')
+//for_each(print_stuff, return_file_lines(input.txt));
+
+
+
+
+
+
+
+/*
+var get_words(k, file_lines, number_of_lines_left) {
+if (number_of_lines_left == 0) {
+return
+}
+number_of_words_in_line = file_lines[0].length;
+
+
+}
+console.error(file_lines[0]);
+*/
+
+//console.error(fileContents);
+return 1

@@ -1,0 +1,18 @@
+var readStringFromFileAtPath = function(pathOfFileToReadFrom)
+{
+    
+     
+    var request = new XMLHttpRequest();
+  /* 
+    request.open("GET", pathOfFileToReadFrom, false);
+    request.send(null);
+    var returnValue = request.responseText;
+
+    return returnValue;
+  */ 
+  return 1;
+};
+
+var text = readStringFromFileAtPath ( "mytext.txt" );
+
+text

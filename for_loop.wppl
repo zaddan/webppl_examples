@@ -1,0 +1,29 @@
+
+//k contains the body of the loop for one iteration
+//context is an array containing the input. Note that each element contains the input 
+//for one iteration
+//counter: always set it to zero
+//upper_bound: loop upper bound
+
+var for_loop = function(k, context, counter, upper_bound) {
+  if (counter == upper_bound - 1) {
+     console.log("gotheer"); 
+     return [k(context, counter)];
+  }else{
+      var second_part  =  for_loop(k, context, counter + 1, upper_bound);
+      var first_part = [k(context, counter)];
+      return first_part.concat(second_part);
+  }
+}
+
+
+
+//example
+var return_stuff = function(context, counter) {
+    return context[counter];
+}
+
+
+var input_context = [1,5,6,6];
+var output_context = for_loop(return_stuff, input_context, 0, input_context.length);
+console.log(output_context);
