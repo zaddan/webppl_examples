@@ -1,10 +1,9 @@
-
+//---this function replaces the for loop when we want to iterate through a container 
+//---sequentially. 
 //k contains the body of the loop for one iteration
-//context is an array containing the input. Note that each element contains the input 
-//for one iteration
+//context is an array containing the input. 
 //counter: always set it to zero
 //upper_bound: loop upper bound
-
 var for_loop = function(k, context, counter, upper_bound) {
   if (counter == upper_bound - 1) {
      console.log("gotheer"); 
@@ -17,13 +16,63 @@ var for_loop = function(k, context, counter, upper_bound) {
 }
 
 
+//---apply a function only to one element of an array
+var for_one_helper = function(k, for_one_context, counter, upper_bound, index) {
+  if (index >= upper_bound) {
+    console.log("***index out of bound****");
+    return false; //abort the program 
+  }
+  if (counter == upper_bound - 1) {
+     var return_val = counter == index ? [k(for_one_context, counter)]: [for_one_context.array[counter]];
+     return return_val;
+  }else{
+      var second_part  =  for_one_helper(k, for_one_context, counter + 1, upper_bound, index);
+      var first_part = counter == index ? [k(for_one_context, counter)]: [for_one_context.array[counter]];
+      return first_part.concat(second_part);
+  }
+}
 
-//example
-var return_stuff = function(context, counter) {
-    return context[counter];
+var for_one = function(k , for_one_context, index) {
+    for_one_helper (k, for_one_context, 0, for_one_context.array.length, index);
 }
 
 
-var input_context = [1,5,6,6];
-var output_context = for_loop(return_stuff, input_context, 0, input_context.length);
-console.log(output_context);
+
+//----this function used when we we iterate through using the code counter but 
+//--- not necessary over a container
+var for_loop_2 = function(k, context, counter, upper_bound) {
+  if (counter == upper_bound - 1) {
+     return k(context, counter);
+  }else{
+      return for_loop_2(k, k(context, counter), counter + 1, upper_bound);
+  }
+}
+
+//----example
+//---necessary ingredients
+//---------functions replacing the one liners which modify an array
+var rand_foo_1 = function(context, index) {
+ return context.array[index]*context.coeff;
+}
+var rand_foo_2 = function(context, index) {
+ return context.array[index]*context.coeff;
+}
+
+//----loop body which gets a context and return a context. It uses the foos which has replaced the one liner array modifiers
+//always return a context
+var for_loop_body = function(context, loop_counter) {
+  var for_one_context = {array: context.array, coeff: 5};
+  var for_one_context1 = {name: context.name, array:for_one(rand_foo_1, for_one_context, loop_counter)};
+  
+  var for_one_context_2 = {array: for_one_context1.array, coeff: 3};
+  var for_one_context_3 =  {name: for_one_context_2.name, array:for_one(rand_foo_2, for_one_context_2, loop_counter+3)};
+  return for_one_context_3;
+}
+
+
+var my_array = [1,34,4,56,7, 8];
+var context = {name:'behzad', array: my_array};
+console.log(for_loop_2(for_loop_body, context, 0, (my_array.length)/2));
+
+
+return 1;

@@ -23,69 +23,69 @@ var main = (function (p) {
         };
     };
 }(function (globalStore, _k0, _address0) {
-    var get_file_lines = function get_file_lines(globalStore, _k21, _address145, file_name) {
+    var get_file_lines = function get_file_lines(globalStore, _k20, _address145, file_name) {
         var fs$2 = require.call(null, 'fs');
         var fileContents = fs$2.readFileSync(file_name, 'utf8');
         var file_lines$2 = fileContents.toString().split('\n');
         return function () {
-            return _k21(globalStore, file_lines$2);
+            return _k20(globalStore, file_lines$2);
         };
     };
-    var car = function car(globalStore, _k17, _address146, array) {
-        var _k19 = function (globalStore, _dummy18) {
+    var car = function car(globalStore, _k16, _address146, array) {
+        var _k18 = function (globalStore, _dummy17) {
             return function () {
-                return _k17(globalStore, array[0]);
+                return _k16(globalStore, array[0]);
             };
         };
         return function () {
-            return ad.eq(array.length, 0) ? function (globalStore, _dummy20) {
+            return ad.eq(array.length, 0) ? function (globalStore, _dummy19) {
                 return function () {
-                    return _k17(globalStore, 0);
+                    return _k16(globalStore, 0);
                 };
-            }(globalStore, console.error('------nothing in the array to get the car for')) : _k19(globalStore, undefined);
+            }(globalStore, console.error('------nothing in the array to get the car for')) : _k18(globalStore, undefined);
         };
     };
-    var cdr = function cdr(globalStore, _k13, _address147, array) {
-        var _k15 = function (globalStore, _dummy14) {
+    var cdr = function cdr(globalStore, _k12, _address147, array) {
+        var _k14 = function (globalStore, _dummy13) {
             return function () {
-                return _k13(globalStore, array.slice(1, array.length));
+                return _k12(globalStore, array.slice(1, array.length));
             };
         };
         return function () {
-            return ad.eq(array.length, 0) ? function (globalStore, _dummy16) {
+            return ad.eq(array.length, 0) ? function (globalStore, _dummy15) {
                 return function () {
-                    return _k13(globalStore, 0);
+                    return _k12(globalStore, 0);
                 };
-            }(globalStore, console.error('-----nothing in the array to get the cdr for')) : _k15(globalStore, undefined);
+            }(globalStore, console.error('-----nothing in the array to get the cdr for')) : _k14(globalStore, undefined);
         };
     };
-    var for_each = function for_each(globalStore, _k5, _address148, k, array) {
+    var for_each = function for_each(globalStore, _k4, _address148, k, array) {
         return function () {
-            return cdr(globalStore, function (globalStore, _result6) {
+            return cdr(globalStore, function (globalStore, _result5) {
                 return function () {
-                    return ad.eq(_result6.length, 0) ? car(globalStore, function (globalStore, _result8) {
+                    return ad.eq(_result5.length, 0) ? car(globalStore, function (globalStore, _result7) {
                         return function () {
-                            return k(globalStore, function (globalStore, _dummy7) {
+                            return k(globalStore, function (globalStore, _dummy6) {
                                 return function () {
-                                    return _k5(globalStore, 0);
+                                    return _k4(globalStore, 0);
                                 };
-                            }, _address148.concat('_131'), _result8);
+                            }, _address148.concat('_131'), _result7);
                         };
-                    }, _address148.concat('_130'), array) : car(globalStore, function (globalStore, _result12) {
+                    }, _address148.concat('_130'), array) : car(globalStore, function (globalStore, _result11) {
                         return function () {
-                            return k(globalStore, function (globalStore, _dummy11) {
+                            return k(globalStore, function (globalStore, _dummy10) {
                                 return function () {
-                                    return cdr(globalStore, function (globalStore, _result10) {
+                                    return cdr(globalStore, function (globalStore, _result9) {
                                         return function () {
-                                            return for_each(globalStore, function (globalStore, _dummy9) {
+                                            return for_each(globalStore, function (globalStore, _dummy8) {
                                                 return function () {
-                                                    return _k5(globalStore, 0);
+                                                    return _k4(globalStore, 0);
                                                 };
-                                            }, _address148.concat('_135'), k, _result10);
+                                            }, _address148.concat('_135'), k, _result9);
                                         };
                                     }, _address148.concat('_134'), array);
                                 };
-                            }, _address148.concat('_133'), _result12);
+                            }, _address148.concat('_133'), _result11);
                         };
                     }, _address148.concat('_132'), array);
                 };
@@ -95,7 +95,6 @@ var main = (function (p) {
     return function () {
         return get_file_lines(globalStore, function (globalStore, file_lines) {
             var inqueue = file_lines[0].split('');
-            var _dummy4 = console.log(inqueue.length);
             var fs = require.call(null, 'fs');
             var _dummy3 = fs.unlink('out_blah.txt');
             var write_char_to_file = function write_char_to_file(globalStore, _k2, _address149, in_char) {

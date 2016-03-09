@@ -10,7 +10,6 @@
 #include <assert.h>
 //#include "globals.h"
 #include <iostream>
-#include <iterator>
 using namespace std;
 
 
@@ -65,44 +64,67 @@ int CLIP(int tmp)
 int dct_invocation = 0;
 ofstream dct_out_file;
 ifstream dct_in_file("dct_in.txt");
-
-struct first_loop_context_t {
-	bool dcten; 
-	char inqueue[64];
-	bool qen;
-};
-
-
-void dct_first_loop_helper(
- first_loop_context_t context, int tmp[64], int i)
+void dct(
+	bool dcten, 
+	char inqueue[64], 
+	int outqueue[64], 
+	bool&qen)
 {
+ 
+   
+     
+    ofstream dct_blah; 
+    if (dct_invocation == 0) {
+     dct_blah.open("dct_blahblah.txt",std::fstream::out | std::fstream::binary);
+     dct_blah << "iter: " <<dct_invocation << "-------"<<endl;
+     dct_blah << "inqueue: "<<endl;
+     for (int i=0; i< 64; i++) {
+         dct_blah<< inqueue[i];
+     }
+    dct_blah<<endl; 
+ }
+ 
+  
+        //cout<<"dct has been incovated for " << dct_invocation <<endl;
+//#pragma HLS function_instantiate variable=color
+
+  int i;// aptr;
+  int a0,  a1,  a2,  a3;
+  int b0,  b1,  b2,  b3;
+  int tb0,  tb1,  ta0, ta1,  ta2,  ta3;
+  int c0,  c1,  c2,  c3;
+  int v0,  v1,  v2,  v3,  v4,  v5,  v6,  v7;
   //yuv_t in_block[64];
-	context.qen=context.dcten;
-  if(context.dcten==false) return;
+  int tmp[64];
+	qen=dcten;
+  if(dcten==false) return;
+  for (i = 0; i < 8; i++)
+  {
+
 	//#pragma HLS PIPELINE
     //aptr = i;
-    int v0 = context.inqueue[i*8+0];
-    int v1 = context.inqueue[i*8+1];
-    int v2 = context.inqueue[i*8+2];
-    int v3 = context.inqueue[i*8+3];
-    int v4 = context.inqueue[i*8+4];
-    int v5 = context.inqueue[i*8+5];
-    int v6 = context.inqueue[i*8+6];
-    int v7 = context.inqueue[i*8+7];
-    int a0 = LS((v0+ v7),  2); //AdditionOp     
+    v0 = inqueue[i*8+0];
+    v1 = inqueue[i*8+1];
+    v2 = inqueue[i*8+2];
+    v3 = inqueue[i*8+3];
+    v4 = inqueue[i*8+4];
+    v5 = inqueue[i*8+5];
+    v6 = inqueue[i*8+6];
+    v7 = inqueue[i*8+7];
+    a0 = LS((v0+ v7),  2); //AdditionOp     
     //cout<< "a0: "<< a0<<endl; 
     
-    int c3 = LS((v0 + -1*v7),  2);//AdditionOp
-    int a1 = LS((v1 + v6),  2);//AdditionOp 
-    int c2 = LS((v1 +  -1*v6),  2);//AdditionOp
-    int a2 = LS((v2 + v5),  2);//AdditionOp 
-    int c1 = LS((v2 + -1*v5),  2);//AdditionOp
-    int a3 = LS((v3 + v4),  2);//AdditionOp 
-    int c0 = LS((v3 + -1*v4),  2);//AdditionOp
-    int b0 = a0 + a3; //AdditionOp
-    int b1 = a1 +  a2;//AdditionOp
-    int b2 = a1 + -1*a2;//AdditionOp
-    int b3 = a0 + -1*a3;//AdditionOp
+    c3 = LS((v0 + -1*v7),  2);//AdditionOp
+    a1 = LS((v1 + v6),  2);//AdditionOp 
+    c2 = LS((v1 +  -1*v6),  2);//AdditionOp
+    a2 = LS((v2 + v5),  2);//AdditionOp 
+    c1 = LS((v2 + -1*v5),  2);//AdditionOp
+    a3 = LS((v3 + v4),  2);//AdditionOp 
+    c0 = LS((v3 + -1*v4),  2);//AdditionOp
+    b0 = a0 + a3; //AdditionOp
+    b1 = a1 +  a2;//AdditionOp
+    b2 = a1 + -1*a2;//AdditionOp
+    b3 = a0 + -1*a3;//AdditionOp
     int b0b1Add1 = b0 + b1; //AdditionOp
     tmp[i] = MSCALE(c1d4 * (b0b1Add1));//MultiplicationOp
     int b0b1Sub1 = b0 + -1*b1; //AdditionOp
@@ -118,80 +140,62 @@ void dct_first_loop_helper(
     tmp[i + 48] = MSCALE(c3d8b3Mul + -1*(c1d8b2Mul)); //AdditionOp
     
     int c2c1Temp =  c2 + -1*c1; //AdditionOp
+    b0 = MSCALE(c1d4 *c2c1Temp);//MultiplicationOp
     int c2c1Temp2 =  c2 +  c1;//AdditionOp
     
     
     
-    int b0_2 = MSCALE(c1d4 *c2c1Temp);//MultiplicationOp
-    int b1_2 = MSCALE(c1d4 * (c2c1Temp2));
-    int a0_2 = c0 + b0_2;
-    int a1_2 = c0 - b0_2;
-    int a2_2 = c3 - b1_2;
-    int a3_2 = c3 + b1_2;
-    int c7d16a0Mul =  c7d16 * a0_2;
-    int c1d16a3Mul = c1d16 * a3_2;
-    int c3d16a2Mul =  c3d16 * a2_2;
-    int c5d16a1Mul =  c5d16 * a1_2;
-    int c5d16a2Mul =  c5d16 * a2_2;
-    int c3d16a1Mul =  c3d16 * a1_2;
-    int c7d16a3Mul =  c7d16 * a3_2;
-    int c1d16a0Mul =  c1d16 * a0_2;
+    b1 = MSCALE(c1d4 * (c2c1Temp2));
+    a0 = c0 + b0;
+    a1 = c0 - b0;
+    a2 = c3 - b1;
+    a3 = c3 + b1;
+    int c7d16a0Mul =  c7d16 * a0;
+    int c1d16a3Mul = c1d16 * a3;
+    int c3d16a2Mul =  c3d16 * a2;
+    int c5d16a1Mul =  c5d16 * a1;
+    int c5d16a2Mul =  c5d16 * a2;
+    int c3d16a1Mul =  c3d16 * a1;
+    int c7d16a3Mul =  c7d16 * a3;
+    int c1d16a0Mul =  c1d16 * a0;
     tmp[i + 8] = MSCALE((c7d16a0Mul) + (c1d16a3Mul));
     tmp[i + 24] = MSCALE((c3d16a2Mul) - (c5d16a1Mul));
     tmp[i + 40] = MSCALE((c3d16a1Mul) + (c5d16a2Mul));
     tmp[i + 56] = MSCALE((c7d16a3Mul) - (c1d16a0Mul));
-
-}
-
-
-void dct_first_loop(first_loop_context_t context, int tmp[64]){
-    int i; 
-    for (i = 0; i < 8; i++) {
-     dct_first_loop_helper(context, tmp, i); 
   }
-}
-
-
-struct second_loop_context_t {
-    int tmp[64];
-};
-
-
-
-
-void dct_second_loop_helper(second_loop_context_t context, int outqueue[64], int i)
-{
+  for (i = 0; i < 8; i++)
+  {
 
 	//#pragma HLS PIPELINE
     //aptr = LS(i,  3);
-    int v0 = context.tmp[i*8+0];// aptr++;
-    int v1 = context.tmp[i*8+1]; //aptr++;
-    int v2 = context.tmp[i*8+2]; //aptr++;
-    int v3 = context.tmp[i*8+3]; //aptr++;
-    int v4 = context.tmp[i*8+4];// aptr++;
-    int v5 = context.tmp[i*8+5]; //aptr++;
-    int v6 = context.tmp[i*8+6]; //aptr++;
-    int v7 = context.tmp[i*8+7];
-    int c3 = RS((v0 + -1*v7),  1);  //AdditionOp
-    int a0 = RS((v0 +  v7),  1);//AdditionOp
-    int c2 = RS((v1 + -1*v6),  1); //AdditionOp
-    int a1 = RS((v1 +  v6),  1);//AdditionOp
-    int  c1 = RS((v2 + -1*v5),  1); //AdditionOp
-    int a2 = RS((v2 +  v5),  1);//AdditionOp
-    int c0 = RS((v3 + -1*v4),  1); //AdditionOp
-    int a3 = RS((v3 + v4),  1);//AdditionOp
-    int b0 = a0 + a3;//AdditionOp 
-    int b1 = a1 + a2;//AdditionOp
-    int b2 = a1 + -1*a2;//AdditionOp
-    int b3 = a0 + -1* a3;//AdditionOp
+    v0 = tmp[i*8+0];// aptr++;
+    v1 = tmp[i*8+1]; //aptr++;
+    v2 = tmp[i*8+2]; //aptr++;
+    v3 = tmp[i*8+3]; //aptr++;
+    v4 = tmp[i*8+4];// aptr++;
+    v5 = tmp[i*8+5]; //aptr++;
+    v6 = tmp[i*8+6]; //aptr++;
+    v7 = tmp[i*8+7];
+    c3 = RS((v0 + -1*v7),  1);  //AdditionOp
+    a0 = RS((v0 +  v7),  1);//AdditionOp
+    c2 = RS((v1 + -1*v6),  1); //AdditionOp
+    a1 = RS((v1 +  v6),  1);//AdditionOp
+    c1 = RS((v2 + -1*v5),  1); //AdditionOp
+    a2 = RS((v2 +  v5),  1);//AdditionOp
+    c0 = RS((v3 + -1*v4),  1); //AdditionOp
+    a3 = RS((v3 + v4),  1);//AdditionOp
+    b0 = a0 + a3;//AdditionOp 
+    b1 = a1 + a2;//AdditionOp
+    b2 = a1 + -1*a2;//AdditionOp
+    b3 = a0 + -1* a3;//AdditionOp
     int c1c2Sub = c2 + -1*c1; //AdditionOp
     int c1c2Add= c2 + c1; //AdditionOp
-    int tb0 = MSCALE(c1d4 *  (c1c2Sub)); //MultiplicationOp
-    int tb1 = MSCALE(c1d4 * (c1c2Add)); //MultiplicationOp
-    int ta0 = c0 + tb0; //AdditionOp
-    int ta1 = c0 + -1*tb0; //AdditionOp
-    int  ta2 = c3 + -1*tb1; //AdditionOp
-    int ta3 = c3 +  tb1; //AdditionOp
+    tb0 = MSCALE(c1d4 *  (c1c2Sub)); //MultiplicationOp
+    tb1 = MSCALE(c1d4 * (c1c2Add)); //MultiplicationOp
+    ta0 = c0 + tb0; //AdditionOp
+    ta1 = c0 + -1*tb0; //AdditionOp
+    ta2 = c3 + -1*tb1; //AdditionOp
+    ta3 = c3 +  tb1; //AdditionOp
 
     int b0b1Add = b0 +  b1;  //AdditionOp
     int b0b1Sub = b0 + -1*b1; //AdditionOp 
@@ -210,39 +214,20 @@ void dct_second_loop_helper(second_loop_context_t context, int outqueue[64], int
     outqueue[i*8 + 5] =CLIP(MSCALE((c3d16 * ta1) + (c5d16 * ta2)));
     outqueue[i*8 + 7] =CLIP(MSCALE((c7d16 * ta3) - (c1d16 * ta0)));
 	
-
-}
-
-void dct_second_loop(second_loop_context_t context, int outqueue[64]) {
-    int i; 
-    for (i = 0; i < 8; i++) {
-        dct_second_loop_helper(context, outqueue, i);
-    }
-}
-
-void dct(
-	bool dcten, 
-	char inqueue[64], 
-	int outqueue[64], 
-	bool&qen)
-{
- 
-  int tmp[64];
-  qen=dcten;
-  if(dcten==false) return;
-   
+  }
   
-  //----run the first loop
-  first_loop_context_t first_loop_context_in;
-  copy(inqueue, inqueue + 64, first_loop_context_in.inqueue);
-  first_loop_context_in.dcten = dcten; 
-  first_loop_context_in.qen = qen; 
-  dct_first_loop(first_loop_context_in, tmp);
-
-  //----run the 2nd loop 
-  second_loop_context_t second_loop_context_in;
-  copy(tmp, tmp+64, second_loop_context_in.tmp);
-  dct_second_loop(second_loop_context_in, outqueue);
+  /* 
+  if (dct_invocation == 0){ 
+      dct_out_file.open("dct_out.txt",std::fstream::out | std::fstream::binary);
+      dct_out_file << "outqueue: "<<endl;
+      for (int i=0; i< 64; i++) {
+          dct_out_file<< outqueue[i]<<" "<<endl;; 
+      }
+      dct_out_file<<"qen "<<qen<<endl;
+      dct_out_file.close(); 
+  }
+  */ 
+  dct_invocation++;  
 }
 
 
@@ -253,12 +238,12 @@ int main () {
     int outqueue[64];
     bool qen;
     
-    //-----get the inputs 
+    
+    //get the inqueue from the file 
     string line; 
     string buf;  //to dump the words within a string in
     int counter = 0; 
     ofstream test_in_file("test_in.txt");
-    
     /* 
     if(dct_in_file.is_open()) {
        while(getline(dct_in_file, line)) {
@@ -272,7 +257,7 @@ int main () {
        }
        
      */  
-    if(dct_in_file.is_open()) {
+     if(dct_in_file.is_open()) {
        while(getline(dct_in_file, line)) {
            
            for(int i =0 ; i < line.size(); i++) {
@@ -293,14 +278,14 @@ int main () {
        cout<<"unable to open the file"<<endl;
        exit(0);
    }
+   
+      
    dcten = true;   
    
-   //-----run dct 
+   //run dct 
    dct(dcten, inqueue, outqueue, qen);
    
-   
-   
-   //-----write the output
+   //write the output
    dct_out_file.open("dct_out.txt",std::fstream::out | std::fstream::binary);
    dct_out_file << "outqueue: "<<endl;
    for (int i=0; i< 64; i++) {
@@ -308,5 +293,6 @@ int main () {
    }
    dct_out_file<<endl<<"qen "<<qen<<endl;
    dct_out_file.close();
+
 }
 

@@ -1,0 +1,4 @@
+var foo = function(context) {
+   console.log(context.in);
+}
+foo({in:'hello', out:'bye'})
