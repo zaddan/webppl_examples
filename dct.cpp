@@ -90,7 +90,6 @@ void dct_first_loop_helper(
     int v6 = context.inqueue[i*8+6];
     int v7 = context.inqueue[i*8+7];
     int a0 = LS((v0+ v7),  2); //AdditionOp     
-    //cout<< "a0: "<< a0<<endl; 
     
     int c3 = LS((v0 + -1*v7),  2);//AdditionOp
     int a1 = LS((v1 + v6),  2);//AdditionOp 
@@ -105,10 +104,10 @@ void dct_first_loop_helper(
     int b3 = a0 + -1*a3;//AdditionOp
     int b0b1Add1 = b0 + b1; //AdditionOp
     tmp[i] = MSCALE(c1d4 * (b0b1Add1));//MultiplicationOp
+
     int b0b1Sub1 = b0 + -1*b1; //AdditionOp
     tmp[i + 32] = MSCALE(c1d4 * (b0b1Sub1)); //MultiplicationOp
-   
-
+    
     int c3d8b2Mul = c3d8 * b2;//MultiplicationOp
     int c1d8b3Mul = c1d8 *  b3;//MultiplicationOp
     int c3d8b3Mul = c3d8 *  b3;//MultiplicationOp
@@ -140,6 +139,7 @@ void dct_first_loop_helper(
     tmp[i + 24] = MSCALE((c3d16a2Mul) - (c5d16a1Mul));
     tmp[i + 40] = MSCALE((c3d16a1Mul) + (c5d16a2Mul));
     tmp[i + 56] = MSCALE((c7d16a3Mul) - (c1d16a0Mul));
+    
 
 }
 
@@ -204,13 +204,18 @@ void dct_second_loop_helper(second_loop_context_t context, int outqueue[64], int
     outqueue[i*8] 		=CLIP(MSCALE(c1d4 * (b0b1Add)));
     outqueue[i*8 + 4] =CLIP(MSCALE(c1d4 * (b0b1Sub)));
     outqueue[i*8 + 2] =CLIP(MSCALE((c3d8b2Mul) + (c1d8b3Mul)));
+    
+    
     outqueue[i*8 + 6] =CLIP(MSCALE((c3d8b3Mul) - (c1d8b2Mul)));
     outqueue[i*8 + 1] =CLIP(MSCALE((c7d16 * ta0) + (c1d16 * ta3)));
     outqueue[i*8 + 3] =CLIP(MSCALE((c3d16 * ta2) - (c5d16 * ta1)));
+    
+    
+
+    
+    
     outqueue[i*8 + 5] =CLIP(MSCALE((c3d16 * ta1) + (c5d16 * ta2)));
     outqueue[i*8 + 7] =CLIP(MSCALE((c7d16 * ta3) - (c1d16 * ta0)));
-	
-
 }
 
 void dct_second_loop(second_loop_context_t context, int outqueue[64]) {
@@ -238,7 +243,7 @@ void dct(
   first_loop_context_in.dcten = dcten; 
   first_loop_context_in.qen = qen; 
   dct_first_loop(first_loop_context_in, tmp);
-
+  
   //----run the 2nd loop 
   second_loop_context_t second_loop_context_in;
   copy(tmp, tmp+64, second_loop_context_in.tmp);
@@ -302,6 +307,7 @@ int main () {
    
    //-----write the output
    dct_out_file.open("dct_out.txt",std::fstream::out | std::fstream::binary);
+
    dct_out_file << "outqueue: "<<endl;
    for (int i=0; i< 64; i++) {
        dct_out_file<< (int)outqueue[i]<<" ";

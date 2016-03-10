@@ -34,10 +34,16 @@ var MSCALE = function(r) {
 
 var CLIP_helper = function(tmp)
 {
-   var tval = Math.floor(((tmp < 0) ? (tmp - 4) : (tmp+ 4)) / 8);
-  
-  return tval; 
-  
+    
+   if (tmp< 0) {
+       if((tmp-4)%8 ==0) {
+           return Math.floor((tmp-4)/8);
+       }else{
+           return Math.floor((tmp-4)/8)+1;
+       }
+   }else{
+     return Math.floor((tmp+4)/8);
+   }
 };
 
 var CLIP = function(tval) {
@@ -68,6 +74,7 @@ var print_inqueue = function(k , inqueue, counter) {
 //----file handling stuff
 //the following really should be in another file
 //---TODO: add them to another file and include that file
+
 var get_file_lines = function(file_name) {
     var fs = require.call(null, 'fs');
     var fileContents = fs.readFileSync(file_name,'utf8');
@@ -120,66 +127,76 @@ var for_loop = function(k, context, counter, upper_bound) {
 }
 
 
-
 //---apply a function only to one element of an array
-var for_one_helper = function(k, array, counter, upper_bound, index) {
+var for_one_helper = function(k, for_one_context, counter, upper_bound, index) {
   if (index >= upper_bound) {
     console.log("***index out of bound****");
+    console.log("index is", index);  
     return false; //abort the program 
   }
   if (counter == upper_bound - 1) {
-     var return_val = counter == index ? [k(array, counter)]: [array[counter]];
+     var return_val = counter == index ? [k(for_one_context, counter)]: [for_one_context.array[counter]];
      return return_val;
   }else{
-      var second_part  =  for_one_helper(k, array, counter + 1, upper_bound, index);
-      var first_part = counter == index ? [k(array, counter)]: [array[counter]];
+      var second_part  =  for_one_helper(k, for_one_context, counter + 1, upper_bound, index);
+      var first_part = counter == index ? [k(for_one_context, counter)]: [for_one_context.array[counter]];
       return first_part.concat(second_part);
   }
 }
 
-var for_one = function(k , array, index) {
-    for_one_helper (k, array, 0, array.length, index);
+var for_one = function(k , for_one_context, index) {
+    return for_one_helper (k, for_one_context, 0, for_one_context.array.length, index);
+}
+
+//----this function used when we we iterate through using the code counter but 
+//--- not necessary over a container
+var for_loop_2 = function(k, context, counter, upper_bound) {
+  if (counter == upper_bound - 1) {
+     return k(context, counter);
+  }else{
+      return for_loop_2(k, k(context, counter), counter + 1, upper_bound);
+  }
 }
 
 
+var assign_array = function(context) {
+    return context.MSCALE_val;
+}
 
-
-
-var MSCALE_modified_= function({temp: for_one(MSCALE_modified, tmp_4, i+8)};
-
-
-var dct_first_loop_body = function(context){
+var dct_first_loop_body = function(context, i){
     if(context.dcten==false) return;
     
-    var v0 = context.inqueue[i*8+0];
-    var v1 = context.inqueue[i*8+1];
-    var v2 = context.inqueue[i*8+2];
-    var v3 = context.inqueue[i*8+3];
-    var v4 = context.inqueue[i*8+4];
-    var v5 = context.inqueue[i*8+5];
-    var v6 = context.inqueue[i*8+6];
-    var v7 = context.inqueue[i*8+7];
+    
+    var v0 = (context.inqueue[i*8+0]).charCodeAt(0);
+    var v1 = (context.inqueue[i*8+1]).charCodeAt(0);
+    var v2 = (context.inqueue[i*8+2]).charCodeAt(0);
+    var v3 = (context.inqueue[i*8+3]).charCodeAt(0);
+    var v4 = (context.inqueue[i*8+4]).charCodeAt(0);
+    var v5 = (context.inqueue[i*8+5]).charCodeAt(0);
+    var v6 = (context.inqueue[i*8+6]).charCodeAt(0);
+    var v7 = (context.inqueue[i*8+7]).charCodeAt(0);
     var a0 = LS((v0+ v7),  2); //AdditionOp     
     //cout<< "a0: "<< a0<<endl; 
     
-    var c3 = LS((v0 + -1*v7),  2);//AdditionOp
+    var c3 = LS((v0 + (-1*v7)),  2);//AdditionOp
     var a1 = LS((v1 + v6),  2);//AdditionOp 
-    var c2 = LS((v1 +  -1*v6),  2);//AdditionOp
+    var c2 = LS((v1 +  (-1*v6)),  2);//AdditionOp
     var a2 = LS((v2 + v5),  2);//AdditionOp 
-    var c1 = LS((v2 + -1*v5),  2);//AdditionOp
+    var c1 = LS((v2 + (-1*v5)),  2);//AdditionOp
     var a3 = LS((v3 + v4),  2);//AdditionOp 
-    var c0 = LS((v3 + -1*v4),  2);//AdditionOp
+    var c0 = LS((v3 + (-1*v4)),  2);//AdditionOp
     var b0 = a0 + a3; //AdditionOp
     var b1 = a1 +  a2;//AdditionOp
-    var b2 = a1 + -1*a2;//AdditionOp
-    var b3 = a0 + -1*a3;//AdditionOp
+    var b2 = a1 + (-1*a2);//AdditionOp
+    var b3 = a0 + (-1*a3);//AdditionOp
     var b0b1Add1 = b0 + b1; //AdditionOp
     
     
-    var tmp_1 = {temp: for_one(MSCALE_modified, context.tmp, i)};
+    var tmp_1 = for_one(assign_array, {array:context.tmp, MSCALE_val: MSCALE(c1d4 * (b0b1Add1))}, i);
     //tmp[i] = MSCALE(c1d4 * (b0b1Add1));//MultiplicationOp
-    var b0b1Sub1 = b0 + -1*b1; //AdditionOp
-    var tmp_2 = {temp: for_one(MSCALE_modified, tmp_1, i+32)};
+    var b0b1Sub1 = b0 + (-1*b1); //AdditionOp
+    var tmp_2 = for_one(assign_array, {array:tmp_1, MSCALE_val: MSCALE(c1d4 * (b0b1Sub1))}, i+32);
+    
     //tmp[i + 32] = MSCALE(c1d4 * (b0b1Sub1)); //MultiplicationOp
    
 
@@ -189,13 +206,12 @@ var dct_first_loop_body = function(context){
     var c1d8b2Mul = c1d8 * b2;//MultiplicationOp
     
     
-    var tmp_3 = {temp: for_one(MSCALE_modified, tmp_2, i+16)};
-    var tmp_4 = {temp: for_one(MSCALE_modified, tmp_3, i+48)};
-    
+    var tmp_3 = for_one(assign_array, {array:tmp_2, MSCALE_val:MSCALE(c3d8b2Mul+ c1d8b3Mul)}, i+16);
+    var tmp_4 = for_one(assign_array, {array:tmp_3, MSCALE_val:MSCALE(c3d8b3Mul + (-1*c1d8b2Mul))}, i+48);
     //tmp[i + 16] = MSCALE(c3d8b2Mul+ c1d8b3Mul);//AdditionOp
-    //tmp[i + 48] = MSCALE(c3d8b3Mul + -1*(c1d8b2Mul)); //AdditionOp
+    //tmp[i + 48] = MSCALE(c3d8b3Mul + (-1*c1d8b2Mul)); //AdditionOp
     
-    var c2c1Temp =  c2 + -1*c1; //AdditionOp
+    var c2c1Temp =  c2 + (-1*c1); //AdditionOp
     var c2c1Temp2 =  c2 +  c1;//AdditionOp
     
     
@@ -216,22 +232,22 @@ var dct_first_loop_body = function(context){
     var c1d16a0Mul =  c1d16 * a0_2;
     
     
-    var tmp_5 = {temp: for_one(MSCALE_modified, tmp_4, i+8)};
-    var tmp_6 = {temp: for_one(MSCALE_modified, tmp_5, i+24)};
-    var tmp_7 = {temp: for_one(MSCALE_modified, tmp_6, i+40)};
-    var tmp_8 = {temp: for_one(MSCALE_modified, tmp_7, i+56)};
-   
-
+    
+    var tmp_5 = for_one(assign_array, {array:tmp_4, MSCALE_val:MSCALE((c7d16a0Mul) + (c1d16a3Mul))}, i+8);
+    var tmp_6 = for_one(assign_array, {array:tmp_5, MSCALE_val:MSCALE((c3d16a2Mul) - (c5d16a1Mul))}, i+24);
+    var tmp_7 = for_one(assign_array, {array:tmp_6, MSCALE_val:MSCALE((c3d16a1Mul) + (c5d16a2Mul))}, i+40);
+    var tmp_8 = for_one(assign_array, {array:tmp_7, MSCALE_val:MSCALE((c7d16a3Mul) - (c1d16a0Mul))}, i+56);
+    
     //tmp[i + 8] = MSCALE((c7d16a0Mul) + (c1d16a3Mul));
     //tmp[i + 24] = MSCALE((c3d16a2Mul) - (c5d16a1Mul));
     //tmp[i + 40] = MSCALE((c3d16a1Mul) + (c5d16a2Mul));
     //tmp[i + 56] = MSCALE((c7d16a3Mul) - (c1d16a0Mul));
-    return {temp: tmp_8};
+    return {inqueue:context.inqueue, dcten: context.dcten, qen: context.qen, tmp:tmp_8};
 }
 
 
 
-var dct_second_loop_helper = function(context) {
+var dct_second_loop_body = function(context, i) {
 
 	//#pragma HLS PIPELINE
     //aptr = LS(i,  3);
@@ -243,46 +259,48 @@ var dct_second_loop_helper = function(context) {
     var v5 = context.tmp[i*8+5]; //aptr++;
     var v6 = context.tmp[i*8+6]; //aptr++;
     var v7 = context.tmp[i*8+7];
-    var c3 = RS((v0 + -1*v7),  1);  //AdditionOp
+    var c3 = RS((v0 + (-1*v7)),  1);  //AdditionOp
     var a0 = RS((v0 +  v7),  1);//AdditionOp
-    var c2 = RS((v1 + -1*v6),  1); //AdditionOp
+    var c2 = RS((v1 + (-1*v6)),  1); //AdditionOp
     var a1 = RS((v1 +  v6),  1);//AdditionOp
-    var  c1 = RS((v2 + -1*v5),  1); //AdditionOp
+    var  c1 = RS((v2 + (-1*v5)),  1); //AdditionOp
     var a2 = RS((v2 +  v5),  1);//AdditionOp
-    var c0 = RS((v3 + -1*v4),  1); //AdditionOp
+    var c0 = RS((v3 + (-1*v4)),  1); //AdditionOp
     var a3 = RS((v3 + v4),  1);//AdditionOp
     var b0 = a0 + a3;//AdditionOp 
     var b1 = a1 + a2;//AdditionOp
-    var b2 = a1 + -1*a2;//AdditionOp
-    var b3 = a0 + -1* a3;//AdditionOp
-    var c1c2Sub = c2 + -1*c1; //AdditionOp
+    var b2 = a1 + (-1*a2);//AdditionOp
+    var b3 = a0 + (-1* a3);//AdditionOp
+    var c1c2Sub = c2 + (-1*c1); //AdditionOp
     var c1c2Add= c2 + c1; //AdditionOp
     var tb0 = MSCALE(c1d4 *  (c1c2Sub)); //MultiplicationOp
     var tb1 = MSCALE(c1d4 * (c1c2Add)); //MultiplicationOp
     var ta0 = c0 + tb0; //AdditionOp
-    var ta1 = c0 + -1*tb0; //AdditionOp
-    var  ta2 = c3 + -1*tb1; //AdditionOp
+    var ta1 = c0 + (-1*tb0); //AdditionOp
+    var  ta2 = c3 + (-1*tb1); //AdditionOp
     var ta3 = c3 +  tb1; //AdditionOp
 
     var b0b1Add = b0 +  b1;  //AdditionOp
-    var b0b1Sub = b0 + -1*b1; //AdditionOp 
+    var b0b1Sub = b0 + (-1*b1); //AdditionOp 
     var c3d8b2Mul = c3d8 * b2;//MultiplicationOp
     var c1d8b3Mul = c1d8 *  b3;//MultiplicationOp
     var c3d8b3Mul = c3d8 *  b3;//MultiplicationOp
     var c1d8b2Mul = c1d8 * b2;//MultiplicationOp
     
+    var outqueue_0 = for_one(assign_array, {array:context.outqueue, MSCALE_val:CLIP(MSCALE(c1d4 * (b0b1Add)))}, i*8);
+    var outqueue_1 = for_one(assign_array, {array:outqueue_0, MSCALE_val:CLIP(MSCALE(c1d4 * (b0b1Sub)))}, i*8+4);
+    var outqueue_2 = for_one(assign_array, {array:outqueue_1, MSCALE_val:CLIP(MSCALE((c3d8b2Mul) + (c1d8b3Mul)))}, i*8+2);
     
-    var outqueue_0 = {outqueue: for_one(MSCALE_modified, context.outqueue, i*8)};
-   
-    var outqueue_1 = {outqueue: for_one(MSCALE_modified, context.outqueue_0, i*8 + 4)};
-    var outqueue_2 = {outqueue: for_one(MSCALE_modified, context.outqueue_1, i*8+2)};
-    var outqueue_3 = {outqueue: for_one(MSCALE_modified, context.outqueue_2, i*8+6)};
-    var outqueue_4 = {outqueue: for_one(MSCALE_modified, context.outqueue_3, i*8+1)};
-    var outqueue_5 = {outqueue: for_one(MSCALE_modified, context.outqueue_4, i*8+3)};
-    var outqueue_6 = {outqueue: for_one(MSCALE_modified, context.outqueue_5, i*8+5)};
-    var outqueue_7 = {outqueue: for_one(MSCALE_modified, context.outqueue_6, i*8+7)};
-
-    return {outqueue: outqueue_7};
+    var outqueue_3 = for_one(assign_array, {array:outqueue_2, MSCALE_val:CLIP(MSCALE((c3d8b3Mul) - (c1d8b2Mul)))}, i*8+6);
+    var outqueue_4 = for_one(assign_array, {array:outqueue_3,  MSCALE_val:CLIP(MSCALE((c7d16 * ta0) + (c1d16 * ta3)))}, i*8+1);
+    var outqueue_5 = for_one(assign_array, {array:outqueue_4, MSCALE_val:CLIP(MSCALE((c3d16 * ta2) - (c5d16 * ta1)))}, i*8+3);
+    
+    
+    
+    
+    var outqueue_6 = for_one(assign_array, {array:outqueue_5, MSCALE_val:CLIP(MSCALE((c3d16 * ta1) + (c5d16 * ta2)))}, i*8+5);
+    var outqueue_7 = for_one(assign_array, {array:outqueue_6, MSCALE_val:CLIP(MSCALE((c7d16 * ta3) - (c1d16 * ta0)))}, i*8+7);
+    return {tmp: context.tmp, outqueue: outqueue_7};
 //    outqueue[i*8] 		=CLIP(MSCALE(c1d4 * (b0b1Add)));
 //    outqueue[i*8 + 4] =CLIP(MSCALE(c1d4 * (b0b1Sub)));
 //    outqueue[i*8 + 2] =CLIP(MSCALE((c3d8b2Mul) + (c1d8b3Mul)));
@@ -298,28 +316,36 @@ var dct_second_loop_helper = function(context) {
 
 
 
+
 var file_lines = get_file_lines('dct_in_golden.txt');
 var inqueue = file_lines[0].split("");
-var context = {inqueue:inqueue, dcten: dcten, qen: qen, tmp:tmp};
-
-var dct_first_loop_result = for_loop_2(dct_first_loop_body, context, 0, 8);
 
 
 
+//var inqueue = [ 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,11,1,1,1,1,1,1,1,1,11,1,1,1,1,1,1,1,1,1,1,1,1]
+var tmp= [ 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,11,1,1,1,1,1,1,1,1,11,1,1,1,1,1,1,1,1,1,1,1,1]
+var outqueue = [ 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,11,1,1,1,1,1,1,1,1,11,1,1,1,1,1,1,1,1,1,1,1,1]
+var qen = true;
+var dcten = qen;
 
 
+var first_loop_context = {inqueue:inqueue, dcten: dcten, qen: qen, tmp:tmp};
+var dct_first_loop_result = for_loop_2(dct_first_loop_body, first_loop_context, 0, 8);
+var second_loop_context = {tmp:dct_first_loop_result.tmp, outqueue:outqueue}
+var dct_second_loop_result = for_loop_2(dct_second_loop_body, second_loop_context, 0, 8);
+//console.log(dct_second_loop_result.outqueue);
 
-
-//writing the output of a string char by char
+/*
+//writing the inqueue of a string char by char
 var fs = require.call(null, 'fs');
 fs.unlink('out_blah.txt');
 var write_char_to_file = function(in_char) {
     var fs = require.call(null, 'fs');
     var fileContents = fs.appendFile('out_blah.txt',in_char, 'utf8');
 }
-
+*/
 //writing the output char by char
-for_each(write_char_to_file , inqueue);
+//for_each(write_char_to_file , inqueue);
 
 
 
