@@ -1,0 +1,74 @@
+var foo = function(a,b,c,d, e1, e2){
+  var f = a + b + e1;
+  var g = c + d + e2;
+  return g*f ;
+}
+
+var foo_stats= function(){
+  var a = sample(bernoulliERP, [0.5])
+  var b = sample(bernoulliERP, [0.5])
+  var c = sample(bernoulliERP, [0.5])
+  //var d = sample(bernoulliERP, [0.5])
+  var d = sample(randomIntegerERP, 10)
+  
+  var e1 = sample(bernoulliERP, [0.5])
+  var e2 = sample(bernoulliERP, [0.5])
+ 
+  var e1N = sample(bernoulliERP, [0.0])
+  var e2N = sample(bernoulliERP, [0.0])
+  
+
+
+  //var c = sample(bernoulliERP, [0.5])
+  return foo(a,b, c, d, e1, e2) - foo(a,b,c, d, e1N, e2N);
+}
+
+
+var random_int_with_offset = function(offset, bound) {
+    var a =  sample(randomIntegerERP, bound);
+    
+    //return offset + a;
+}
+
+var test_rand_int = function() {
+    return random_int_with_offset(0,10);
+}
+
+var foo2 = function(a,b, e){
+  //var f = a + b + e1;
+  //var g = c + d + e2;
+  //return g*f ;
+  return a + b + e;
+}
+
+var foo_stats2= function(){
+  var a = sample(bernoulliERP, [0.5])
+  var b = sample(bernoulliERP, [0.5])
+  //var c = sample(bernoulliERP, [0.5])
+  //var d = sample(bernoulliERP, [0.5])
+  
+  var e1 = sample(uniform(5,10));
+  //var e2 = sample(bernoulliERP, [0.5])
+ 
+  var e1N = sample(bernoulliERP, [0.0])
+  //var e2N = sample(bernoulliERP, [0.0])
+  
+
+
+  //var c = sample(bernoulliERP, [0.5])
+  return foo(a,b, e1) - foo(a,b,e1N);
+}
+
+
+
+
+
+
+
+//console.log(Enumerate(random_int_with_offset(0,10));
+//console.log(Enumerate(test_rand_int));
+
+console.log(Enumerate(foo_stats));
+//console.log(Enumerate(foo_stats2))
+
+
