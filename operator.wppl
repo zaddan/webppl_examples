@@ -1,0 +1,33 @@
+var multiply_round = function(a, b, num_of_bits) {
+   var abs_a = Math.abs(a);
+   var abs_b = Math.abs(b);
+   var a_sign = (abs_a == a ? 1 : -1);
+   var b_sign =  (abs_b == b ? 1 : -1);
+   var calc_sign = a_sign * b_sign;
+   var a_rounded = (abs_a >> (num_of_bits - 1)) == 1 ? (abs_a >> num_of_bits) + 1 : (abs_a >> num_of_bits)
+   var b_rounded = (abs_b >> (num_of_bits - 1)) == 1 ? (abs_b >> num_of_bits) + 1 : (abs_b >> num_of_bits)
+   return calc_sign * ((a_rounded * b_rounded) << (2*num_of_bits));
+   return 1;
+}
+
+var add_round = function(a, b, Nia) {
+    var weight = Math.pow(2, Nia) - 1;	
+    var iap_a = weight&a;
+	var a_op = (iap_a >> (Nia - 1)) == 1 ? (a >> Nia) + 1 : (a >> Nia);
+    var iap_b = weight&b;
+    var b_op = (iap_b >> (Nia - 1)) == 1 ? (b >> Nia) + 1 : (b >> Nia);
+	return ((a_op) + (b_op)) << Nia;
+}
+
+
+//----testing
+/*
+console.log(multiply_round(7, 15, 0));
+console.log(multiply_round(7, 15, 1));
+console.log(multiply_round(7, 15, 2));
+console.log(add_round(7, 15, 2));
+console.log(add_round(735, 1545, 2));
+console.log(add_round(735, 1545, 4));
+console.log(add_round(735, 1545, 5));
+console.log(add_round(735, 1545, 6));
+*/

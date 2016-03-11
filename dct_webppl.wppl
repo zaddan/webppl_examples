@@ -1,14 +1,4 @@
-var x = 1;
-var test_funct = function(k, x) {
-   if (x == 0) {
-    return;
-   }else{
-   console.error(x); 
-   k(k, x-1); 
-   }
-};
-
-
+var bt_array = [5, 1];
 var c1d4= 362;
 var c1d8= 473;
 var c3d8= 196;
@@ -75,12 +65,15 @@ var print_inqueue = function(k , inqueue, counter) {
 //the following really should be in another file
 //---TODO: add them to another file and include that file
 
+
 var get_file_lines = function(file_name) {
     var fs = require.call(null, 'fs');
     var fileContents = fs.readFileSync(file_name,'utf8');
     var file_lines = fileContents.toString().split('\n');
     return file_lines;
 }
+
+
 
 var car = function (array ) {
 if (array.length == 0) {
@@ -99,16 +92,50 @@ var cdr = function(array) {
 }
 
 
-var for_each = function(k, array) {
+
+
+
+
+//-------------------------------------
+//-------------statistic.js-----------
+//-----------------------------------
+var accumulate = function(array) {
   if (cdr(array).length == 0) {
-     k(car(array));
-     return 0;
+     return (car(array));
   }else{
-      k(car(array));
-      for_each(k, cdr(array));
-      return 0;
+      return accumulate(cdr(array)) + (car(array));
   }
 }
+
+var expectation = function(array) {
+   return accumulate(array)/array.length;
+}
+
+var mean = function(array) {
+   return expectation(array);
+}
+
+
+var variance_helper = function(array, mean) {
+   if (cdr(array).length == 0) {
+     return (Math.pow(car(array) - mean, 2));
+  }else{
+      return variance_helper(cdr(array), mean) + (Math.pow(car(array) - mean,2));
+  }
+}
+
+var variance = function(array) {
+    var mean_val = mean(array);
+    return variance_helper(array, mean_val)/(array.length -1);
+}
+
+var std = function(array) {
+    var mean_val = mean(array);
+    return Math.pow(variance(array), .5)
+}
+
+
+
 
 
 //k contains the body of the loop for one iteration
@@ -125,6 +152,20 @@ var for_loop = function(k, context, counter, upper_bound) {
       return first_part.concat(second_part);
   }
 }
+
+
+
+var for_each = function(k, array) {
+  if (cdr(array).length == 0) {
+     return [k(car(array))];
+  }else{
+      var second_part  =  for_each(k, cdr(array));
+      var first_part = [k(car(array))]
+      return first_part.concat(second_part);
+  }
+}
+
+
 
 
 //---apply a function only to one element of an array
@@ -148,6 +189,28 @@ var for_one = function(k , for_one_context, index) {
     return for_one_helper (k, for_one_context, 0, for_one_context.array.length, index);
 }
 
+
+var multiply_round = function(a, b, num_of_bits) {
+   var abs_a = Math.abs(a);
+   var abs_b = Math.abs(b);
+   var a_sign = (abs_a == a ? 1 : -1);
+   var b_sign =  (abs_b == b ? 1 : -1);
+   var calc_sign = a_sign * b_sign;
+   var a_rounded = (abs_a >> (num_of_bits - 1)) == 1 ? (abs_a >> num_of_bits) + 1 : (abs_a >> num_of_bits)
+   var b_rounded = (abs_b >> (num_of_bits - 1)) == 1 ? (abs_b >> num_of_bits) + 1 : (abs_b >> num_of_bits)
+   return calc_sign * ((a_rounded * b_rounded) << (2*num_of_bits));
+   return 1;
+}
+
+var add_round = function(a, b, Nia) {
+    var weight = Math.pow(2, Nia) - 1;	
+    var iap_a = weight&a;
+	var a_op = (iap_a >> (Nia - 1)) == 1 ? (a >> Nia) + 1 : (a >> Nia);
+    var iap_b = weight&b;
+    var b_op = (iap_b >> (Nia - 1)) == 1 ? (b >> Nia) + 1 : (b >> Nia);
+	return ((a_op) + (b_op)) << Nia;
+}
+
 //----this function used when we we iterate through using the code counter but 
 //--- not necessary over a container
 var for_loop_2 = function(k, context, counter, upper_bound) {
@@ -159,6 +222,17 @@ var for_loop_2 = function(k, context, counter, upper_bound) {
 }
 
 
+var subtract_two_arrays = function(array1, array2) {
+  if (cdr(array1).length == 0) {
+     return [Math.abs(car(array1)- car(array2))];
+  }else{
+      var second_part  =  subtract_two_arrays(cdr(array1), cdr(array2));
+      var first_part = [Math.abs(car(array1)- car(array2))];
+      return first_part.concat(second_part);
+  }
+}
+
+
 var assign_array = function(context) {
     return context.MSCALE_val;
 }
@@ -166,30 +240,40 @@ var assign_array = function(context) {
 var dct_first_loop_body = function(context, i){
     if(context.dcten==false) return;
     
-    
-    var v0 = (context.inqueue[i*8+0]).charCodeAt(0)+ context.e[0];
-    var v1 = (context.inqueue[i*8+1]).charCodeAt(0) + context.e[1];
-    var v2 = (context.inqueue[i*8+2]).charCodeAt(0) + context.e[2];
-    var v3 = (context.inqueue[i*8+3]).charCodeAt(0) + context.e[3];
-    var v4 = (context.inqueue[i*8+4]).charCodeAt(0) + context.e[4];
-    var v5 = (context.inqueue[i*8+5]).charCodeAt(0) + context.e[5];
-    var v6 = (context.inqueue[i*8+6]).charCodeAt(0) + context.e[6];
-    var v7 = (context.inqueue[i*8+7]).charCodeAt(0) + context.e[7];
-    var a0 = LS((v0+ v7),  2) + context.e[8]; //AdditionOp     
+   /* 
+    var v0 = (context.inqueue[i*8+0]).charCodeAt(0);
+    var v1 = (context.inqueue[i*8+1]).charCodeAt(0);
+    var v2 = (context.inqueue[i*8+2]).charCodeAt(0);
+    var v3 = (context.inqueue[i*8+3]).charCodeAt(0);
+    var v4 = (context.inqueue[i*8+4]).charCodeAt(0);
+    var v5 = (context.inqueue[i*8+5]).charCodeAt(0);
+    var v6 = (context.inqueue[i*8+6]).charCodeAt(0);
+    var v7 = (context.inqueue[i*8+7]).charCodeAt(0);
+ */   
+    var v0 = (context.inqueue[i*8+0]);
+    var v1 = (context.inqueue[i*8+1]);
+    var v2 = (context.inqueue[i*8+2]);
+    var v3 = (context.inqueue[i*8+3]);
+    var v4 = (context.inqueue[i*8+4]);
+    var v5 = (context.inqueue[i*8+5]);
+    var v6 = (context.inqueue[i*8+6]);
+    var v7 = (context.inqueue[i*8+7]);
+   
+    var a0 = LS((v0+ v7),  2);
     //cout<< "a0: "<< a0<<endl; 
     
-    var c3 = LS((v0 + (-1*v7)),  2) + context.e[9];//AdditionOp
-    var a1 = LS((v1 + v6),  2) + context.e[10];//AdditionOp 
-    var c2 = LS((v1 +  (-1*v6)),  2) + context.e[11];//AdditionOp
-    var a2 = LS((v2 + v5),  2) + context.e[12];//AdditionOp 
-    var c1 = LS((v2 + (-1*v5)),  2) + context.e[13];//AdditionOp
-    var a3 = LS((v3 + v4),  2) + context.e[14];//AdditionOp 
-    var c0 = LS((v3 + (-1*v4)),  2) + context.e[15];//AdditionOp
-    var b0 = a0 + a3 + context.e[16]; //AdditionOp
-    var b1 = a1 +  a2 + context.e[17];//AdditionOp
-    var b2 = a1 + (-1*a2) + context.e[18];//AdditionOp
-    var b3 = a0 + (-1*a3) + context.e[19];//AdditionOp
-    var b0b1Add1 = b0 + b1 + context.e[20]; //AdditionOp
+    var c3 = LS((add_round(v0, (-1*v7), context.bt[0])),  2); 
+    var a1 = LS((add_round(v1, v6, context.bt[1])),  2) ;
+    var c2 = LS((v1 +  (-1*v6)),  2);
+    var a2 = LS((v2 + v5),  2);
+    var c1 = LS((v2 + (-1*v5)),  2);
+    var a3 = LS((v3 + v4),  2); //AdditionOp 
+    var c0 = LS((v3 + (-1*v4)),  2); 
+    var b0 = a0 + a3;
+    var b1 = a1 +  a2 ;
+    var b2 = a1 + (-1*a2);
+    var b3 = a0 + (-1*a3);
+    var b0b1Add1 = b0 + b1; 
     
     
     var tmp_1 = for_one(assign_array, {array:context.tmp, MSCALE_val: MSCALE(c1d4 * (b0b1Add1))}, i);
@@ -242,7 +326,7 @@ var dct_first_loop_body = function(context, i){
     //tmp[i + 24] = MSCALE((c3d16a2Mul) - (c5d16a1Mul));
     //tmp[i + 40] = MSCALE((c3d16a1Mul) + (c5d16a2Mul));
     //tmp[i + 56] = MSCALE((c7d16a3Mul) - (c1d16a0Mul));
-    return {inqueue:context.inqueue, dcten: context.dcten, qen: context.qen, tmp:tmp_8};
+    return {inqueue:context.inqueue, dcten: context.dcten, qen: context.qen, tmp:tmp_8, bt:context.bt};
 }
 
 
@@ -311,19 +395,9 @@ var dct_second_loop_body = function(context, i) {
 //    outqueue[i*8 + 7] =CLIP(MSCALE((c7d16 * ta3) - (c1d16 * ta0)));
 }
 
-
-
-
-
-
-
-
-
-
-
 //setting up the input
 //required for some intitialization
-var return_1= function() {
+var return_1 = function() {
  return 1;
 }
 
@@ -332,25 +406,64 @@ var sample_one_value = function() {
  return randomInteger(255);
 }
 
-//get inqueue from the dct_in_golden.txt file
-var file_lines = get_file_lines('dct_in_golden.txt');
-//var inqueue = file_lines[0].split("");
-var inqueue = for_loop(sample_one_value, [] , 0, 64);
-
-var tmp = for_loop(sample_one_value, [] , 0, 64); //intitalize tmp array with 1
-                                                  //in it (doesn't matter 
-                                                  //what it is initialized with
-var outqueue = for_loop(sample_one_value, [] , 0, 64);  //initialized outqueue 
-                                                        //with 1 (doesn't matter
-                                                        //what the number is)
-var qen = true;
-var dcten = qen;
 
 
-var first_loop_context = {inqueue:inqueue, dcten: dcten, qen: qen, tmp:tmp};
-var dct_first_loop_result = for_loop_2(dct_first_loop_body, first_loop_context, 0, 8);
-var second_loop_context = {tmp:dct_first_loop_result.tmp, outqueue:outqueue}
-var dct_second_loop_result = for_loop_2(dct_second_loop_body, second_loop_context, 0, 8);
+var dct = function(inqueue, dcten, qen, tmp, bt, outqueue) {
+    var first_loop_context = {inqueue:inqueue, dcten: dcten, qen: qen, tmp:tmp, bt: bt};
+    var dct_first_loop_result = for_loop_2(dct_first_loop_body, first_loop_context, 0, 8);
+    var second_loop_context = {tmp:dct_first_loop_result.tmp, outqueue:outqueue}
+    var dct_second_loop_result = for_loop_2(dct_second_loop_body, second_loop_context, 0, 8);
+    return dct_second_loop_result.outqueue;
+}
+
+
+
+var convert_to_char = function(input, counter) {
+    return input[counter].charCodeAt(0);
+}
+
+
+var get_one_sample_from_dct = function(){
+    
+    var file_lines = get_file_lines('dct_in_golden.txt');
+    var get_inqueue_from_file = 0;
+
+    var inqueue =  get_inqueue_from_file == 1 ? for_loop(convert_to_char, 
+            file_lines[0].split(""), 0, 64) :  
+        for_loop(sample_one_value, [] , 0, 64);
+
+    var tmp = for_loop(return_1, [] , 0, 64); //intitalize tmp array with 1
+    //in it (doesn't matter 
+    //what it is initialized with
+    var outqueue = for_loop(return_1, [] , 0, 64);  //initialized outqueue 
+    //with 1 (doesn't matter
+    //what the number is)
+    var qen = true;
+    var dcten = qen;
+
+    var bt_no_error = [0, 0];
+     
+     
+    var accurate = dct(inqueue, dcten, qen, tmp, bt_no_error, outqueue);
+    var inaccurate = dct(inqueue, dcten, qen, tmp, bt_array, outqueue);
+    var error = subtract_two_arrays(accurate, inaccurate)
+    //return std(error)/std(accurate) 
+    return mean(error);
+}
+
+
+var get_first = function(x) {
+  return x[0] ;
+}
+
+
+//--- main 
+var main = function() {
+    var snr_results = repeat(10, get_one_sample_from_dct);
+    console.log("mean of snr", mean(snr_results)); 
+    console.log("std of snr", std(snr_results)); 
+   }
+
 //console.log(dct_second_loop_result.outqueue);
 
 /*
@@ -366,6 +479,4 @@ var write_char_to_file = function(in_char) {
 //for_each(write_char_to_file , inqueue);
 
 
-
-
-return 1;
+main();
