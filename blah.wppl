@@ -1,3 +1,94 @@
-var arr = Array.apply( 1, { length: 4 } );
-console.log(arr[3]);
+var car = function (array ) {
+    if (array.length == 0) {
+        console.error("------nothing in the array to get the car for");
+        return 0;
+    }
+    return array[0];
+}
+
+var cdr = function(array) {
+  if (array.length == 0) {
+    console.error("-----nothing in the array to get the cdr for");
+    return 0;
+  }
+  return array.slice(1, array.length);
+}
+
+
+
+
+var accumulate = function(array) {
+  if (cdr(array).length == 0) {
+     return (car(array));
+  }else{
+      return accumulate(cdr(array)) + (car(array));
+  }
+}
+
+var expectation = function(array) {
+   return accumulate(array)/array.length;
+}
+
+var mean = function(array) {
+   return expectation(array);
+}
+
+
+var variance_helper = function(array, mean) {
+   if (cdr(array).length == 0) {
+     return (Math.pow(car(array) - mean, 2));
+  }else{
+      return variance_helper(cdr(array), mean) + (Math.pow(car(array) - mean,2));
+  }
+}
+
+var variance = function(array) {
+    var mean_val = mean(array);
+    return variance_helper(array, mean_val)/(array.length -1);
+}
+
+var std = function(array) {
+    var mean_val = mean(array);
+    return Math.pow(variance(array), .5)
+}
+
+
+
+
+var for_loop = function(k, context, counter, upper_bound) {
+  if (counter == upper_bound - 1) {
+     return [k(context, counter)];
+  }else{
+      var second_part  =  for_loop(k, context, counter + 1, upper_bound);
+      var first_part = [k(context, counter)];
+      return first_part.concat(second_part);
+  }
+}
+
+var return_1= function() {
+ return 1;
+}
+
+
+
+var sample_one_value = function() {
+ return randomInteger(255);
+}
+
+console.log(for_loop(sample_one_value, [] , 0, 64));
+
+console.log(for_loop(return_1, [] , 0, 64));
+
+
+
+/*
+console.log(accumulate([1,4,5]));
+console.log(mean([1,4,5]));
+console.log(variance([3,4,5,6,7,8,9,10,14]));
+console.log(std([3,4,5,6,7,8,9,10,14]));
+console.log(std(repeat(1000,function() { return randomInteger(10)})));
+*/
+//console.log(std(repeat(100,randomInteger(10))));
 return 1;
+  //console.log(repeat(10, foo));
+
