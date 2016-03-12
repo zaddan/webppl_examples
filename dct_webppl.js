@@ -57,18 +57,8 @@ var cdr = function(array) {
 ////----------------------------------------------------
 var accumulate = function(array) {
   if (cdr(array).length == 0) {
-     if (car(array) == Infinity) {
-        console.log("---------")
-        console.log("an element of the array is Infinity, this might result in undesired results");
-        console.log("---------")
-     }
      return (car(array));
   }else{
-      if (car(array) == Infinity) {
-          console.log("---------");
-          console.log("an element of the array is Infinity, this might result in undesired results");
-          console.log("---------");
-      } 
       return accumulate(cdr(array)) + (car(array));
   }
 }
@@ -272,11 +262,7 @@ var add_round = function(a, b, Nia) {
 //-----------------------------------------------------------------
 //-------------- dct_webppl
 //-----------------------------------------------------------------
-var br_array = [4, 10]; //sets the number of bits truncation on the instruction
-var get_inqueue_from_file = 0;
-var number_of_repetition = get_inqueue_from_file == 1 ? 1 : 10;
-
-
+var bt_array = [5, 1]; //sets the number of bits truncation on the instruction
 var c1d4= 362;
 var c1d8= 473;
 var c3d8= 196;
@@ -517,12 +503,13 @@ var dct = function(inqueue, dcten, qen, tmp, bt, outqueue) {
 ////---------module_name::: get_one_sample_from_dct
 ////---------functionlity::: generate one input sample, and calculate the 
 //-------------------------  accurate and inaccurate dct. Inaccuracy amount
-//------------------------   is determined by br_array. This function returns
+//------------------------   is determined by bt_array. This function returns
 //------------------------   SNR for one sample
 ////----------------------------------------------------
 ////----------------------------------------------------
 var get_one_sample_from_dct = function(){
     var file_lines = get_file_lines('dct_in_golden.txt');
+    var get_inqueue_from_file = 0;
     var inqueue =  get_inqueue_from_file == 1 ? for_loop(convert_to_char, 
             file_lines[0].split(""), 0, 64) :  
         for_loop(function() {return randomInteger(255)}, [] , 0, 64);
@@ -538,18 +525,9 @@ var get_one_sample_from_dct = function(){
     var bt_no_error = [0, 0];
     
     var accurate = dct(inqueue, dcten, qen, tmp, bt_no_error, outqueue);
-    var inaccurate = dct(inqueue, dcten, qen, tmp, br_array, outqueue);
-    
-    if (get_inqueue_from_file) { 
-        console.log(accurate); 
-    } 
+    var inaccurate = dct(inqueue, dcten, qen, tmp, bt_array, outqueue);
     var error = subtract_two_arrays(accurate, inaccurate)
-    if (error == 0) {
-     return Infinity;
-    }
-    else {
-        return std(accurate)/std(error) 
-    }
+    return std(error)/std(accurate) 
     //return mean(error);
 }
 
@@ -562,12 +540,9 @@ var get_one_sample_from_dct = function(){
 ////----------------------------------------------------
 ////----------------------------------------------------
 var main = function() {
-    console.log("Note: If one of the samples don't result in any error, it results in SNR equal to Infity");
-    var snr_results = repeat(number_of_repetition, get_one_sample_from_dct);
-    if (!get_inqueue_from_file) { 
-        console.log("mean of snr", mean(snr_results)); 
-        console.log("std of snr", std(snr_results)); 
-    }
+    var snr_results = repeat(10, get_one_sample_from_dct);
+    console.log("mean of snr", mean(snr_results)); 
+    console.log("std of snr", std(snr_results)); 
 }
 
 
