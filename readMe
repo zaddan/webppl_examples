@@ -8,8 +8,8 @@ node dct_webppl.js
 //-----------------parameters
 //-----------------------------------------------------------------
 parameters to set:
-br_array: sets the number of rounded bits for the corresponding instruction that it is used for
-get_inqueue_from_file: determines whether the input is acquired from a file or generate (almost always should be set to 0)
+br_array: sets the number of rounded bits for the corresponding instruction it is applied on
+get_inqueue_from_file: determines whether the input is acquired from a file or generated (almost always should be set to 0)
 number_of_repetition: how many times the sampling+calculation(dct calculation) should be repeated
 
 
