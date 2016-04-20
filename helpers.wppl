@@ -1,3 +1,6 @@
+//----this file contains the helpers that I have writtin in addition to some 
+//---notes on the language
+
 //---a distribution is made on top of another distribution + an inference 
 //---operator (Enumerate + particleFilter)
 //---note that distribution provide a value with a probability
@@ -40,4 +43,6 @@ console.log(map_dic(function(x) {return x}, {0:1,9:2,4:4, 5:5}))
 console.log(map_dic(function(x) {return x.val}, Enumerate(binomial).hist))
 
 
+//--using ParticleFilter for cases that are not countable
+console.log(ParticleFilter(function() { return uniform(6,10)}, 100))
 return 1

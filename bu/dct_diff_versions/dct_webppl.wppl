@@ -1,36 +1,6 @@
-//-----------------------------------------------------------------
-//-----------------parameters to set
-//-----------------------------------------------------------------
-var bt_array = [4, 10, 2 ,4 ,5 ,6 ,1, 6, 1, 6, 1, 6, 3 , 1, 1, 2, 0]; //sets the
-                                                 //number of bits truncation on 
-                                                 //the instruction
+//TODO: sprinkle more apx operations accorss the code
 
-var get_inqueue_from_file = 0;  //if set to 1, the inqueue would be populated
-                                //using an input file
-var number_of_repetition = get_inqueue_from_file == 1 ? 1 : 10;
-
-var rounding_error_distribution_foo = function(a, b , num_of_bits){
-                                                //function determininig the 
-    var step = Math.pow(2, num_of_bits - 1)	
-    if (num_of_bits == 0) {
-        return 0;
-    }
-    return uniform(-1*(step/2), step/2);
-}
-
-var overclocking_error_distribution_foo = function(a, b, num_of_bits){
-    var step = Math.pow(2, num_of_bits - 1)	
-    //---Note: bernoulli distribution for error (associated with overclocking or 
-    //         overvolting + a mux with carry input uniformly between 0 and 1
-    return (step-1)*sample(bernoulliERP, [.5])
-}
-
-
-
-//-----------------------------------------------------------------
-//-----------------file Handling Functions
-//-----------------------------------------------------------------
-
+//----file handling stuff
 //the following really should be in another file
 //---TODO: add them to another file and include that file
 var get_file_lines = function(file_name) {
@@ -39,6 +9,7 @@ var get_file_lines = function(file_name) {
     var file_lines = fileContents.toString().split('\n');
     return file_lines;
 }
+
 
 
 //-----------------------------------------------------------------
@@ -59,6 +30,7 @@ if (array.length == 0) {
 return array[0];
 }
 
+
 //----------------------------------------------------
 ////----------------------------------------------------
 ////---------module_name::: cdr
@@ -74,10 +46,10 @@ var cdr = function(array) {
 }
 
 
+//-------------------------------------
+//-------------statistic.js-----------
+//-----------------------------------
 
-//-----------------------------------------------------------------
-//-----------------statistic collection functions
-//-----------------------------------------------------------------
 
 //----------------------------------------------------
 ////----------------------------------------------------
@@ -89,14 +61,14 @@ var accumulate = function(array) {
   if (cdr(array).length == 0) {
      if (car(array) == Infinity) {
         console.log("---------")
-        console.log("ERROR: an element of the array is Infinity, this might result in undesired results");
+        console.log("an element of the array is Infinity, this might result in undesired results");
         console.log("---------")
      }
      return (car(array));
   }else{
       if (car(array) == Infinity) {
           console.log("---------");
-          console.log("ERROR: an element of the array is Infinity, this might result in undesired results");
+          console.log("an element of the array is Infinity, this might result in undesired results");
           console.log("---------");
       } 
       return accumulate(cdr(array)) + (car(array));
@@ -189,11 +161,6 @@ var for_loop = function(k, context, counter, upper_bound) {
   }
 }
 
-
-
-
-
-
 //----------------------------------------------------
 ////----------------------------------------------------
 ////---------module_name::: for_each
@@ -272,18 +239,15 @@ var for_one = function(k , for_one_context, index) {
 
 //----------------------------------------------------
 ////----------------------------------------------------
-////---------module_name::: multiply_apx
+////---------module_name::: multiply_round
+//-----------cuntionality::: multiply,truncate then round
 ////----------------------------------------------------
 ////----------------------------------------------------
-var multiply_apx= function(a, b, num_of_bits, error_dis) {
-    //an additive model 
-    return a * b + error_dist(a, b, num_of_bits);
-    
-    
-    /* 
-   //---Note: the following is the seogoo's implementation of rounding. was replaced with a probabilistic model  
+var multiply_round = function(a, b, num_of_bits) {
    var abs_a = Math.abs(a);
    var abs_b = Math.abs(b);
+   /* 
+   //---Note: the following is the seogoo's implementation of rounding. was replaced with a probabilistic model  
    var a_sign = (abs_a == a ? 1 : -1);
    var b_sign =  (abs_b == b ? 1 : -1);
    var calc_sign = a_sign * b_sign;
@@ -291,6 +255,18 @@ var multiply_apx= function(a, b, num_of_bits, error_dis) {
    var b_rounded = (abs_b >> (num_of_bits - 1)) == 1 ? (abs_b >> num_of_bits) + 1 : (abs_b >> num_of_bits)
    return calc_sign * ((a_rounded * b_rounded) << (2*num_of_bits));
    */
+   
+    var step = Math.pow(2, Nia)	
+    //---Distribution Type: uniform distribution for error 
+    /* 
+    var step = Math.pow(2, Nia)	
+    return a * b +  uniform(-1*(step/2), step/2)
+    */ 
+
+    //---Note: bernoulli distribution for error (associated with overclocking or 
+    //         overvolting + a mux with carry input uniformly between 0 and 1
+    return (a * b) + (step-1)*sample(bernoulliERP, [.5])
+
 }
 
 //----------------------------------------------------
@@ -299,26 +275,39 @@ var multiply_apx= function(a, b, num_of_bits, error_dis) {
 //-----------cuntionality::: add, truncate, then round
 ////----------------------------------------------------
 ////----------------------------------------------------
-var add_apx = function(a, b, num_of_bits, error_dis) {
-    //an additive model 
-    return a + b + error_dist(a, b, num_of_bits);
-   
+var add_round = function(a, b, Nia) {
     /* 
     //the following is the seogoo's implementation of rounding. was replaced with a probabilistic model  
-    var weight = Math.pow(2, num_of_bits) - 1;	
+    var weight = Math.pow(2, Nia) - 1;	
     var iap_a = weight&a;
-	var a_op = (iap_a >> (num_of_bits - 1)) == 1 ? (a >> num_of_bits) + 1 : (a >> num_of_bits);
+	var a_op = (iap_a >> (Nia - 1)) == 1 ? (a >> Nia) + 1 : (a >> Nia);
     var iap_b = weight&b;
-    var b_op = (iap_b >> (num_of_bits - 1)) == 1 ? (b >> num_of_bits) + 1 : (b >> num_of_bits);
+    var b_op = (iap_b >> (Nia - 1)) == 1 ? (b >> Nia) + 1 : (b >> Nia);
     */	
+    
+    //---Distribution Type: uniform distribution for error 
+    /* 
+    var step = Math.pow(2, Nia)	
+    return a + b +  uniform(-1*(step/2), step/2)
+    */ 
+    
+    //---Note: bernoulli distribution for error (associated with overclocking or 
+    //         overvolting + a mux with carry input uniformly between 0 and 1
+    //return a + b + (step-1)*sample(bernoulliERP, [.5])
+    
+    
+    
+    //return ((a_op) + (b_op)) << Nia;
 }
-
-
 
 
 //-----------------------------------------------------------------
 //-------------- dct_webppl
 //-----------------------------------------------------------------
+var br_array = [4, 10]; //sets the number of bits truncation on the instruction
+var get_inqueue_from_file = 0;
+var number_of_repetition = get_inqueue_from_file == 1 ? 1 : 10;
+
 
 var c1d4= 362;
 var c1d8= 473;
@@ -327,6 +316,7 @@ var c1d16= 502;
 var c3d16= 426;
 var c5d16= 284;
 var c7d16= 100;
+
 
 //----------------------------------------------------
 ////----------------------------------------------------
@@ -418,32 +408,32 @@ var dct_first_loop_body = function(context, i){
     var a0 = LS((v0+ v7),  2);
     //cout<< "a0: "<< a0<<endl; 
     
-    var c3 = LS((add_apx(v0, (-1*v7), context.bt[0])),  2); 
-    var a1 = LS((add_apx(v1, v6, context.bt[1])),  2) ;
-    var c2 = LS(add_apx(v1, (-1*v6), context.bt[2]),  2);
-    var a2 = LS(add_apx(v2, v5, context.bt[3]),  2);
-    var c1 = LS(add_apx(v2, (-1*v5), context.bt[4]),  2);
-    var a3 = LS(add_apx(v3, v4, context.bt[5]),  2); //AdditionOp 
-    var c0 = LS(add_apx(v3, (-1*v4), context.bt[6]),  2); 
-    var b0 = add_apx(a0, a3, context.bt[7]);
-    var b1 = add_apx(a1, a2, context.bt[8]) ;
+    var c3 = LS((add_round(v0, (-1*v7), context.bt[0])),  2); 
+    var a1 = LS((add_round(v1, v6, context.bt[1])),  2) ;
+    var c2 = LS((v1 +  (-1*v6)),  2);
+    var a2 = LS((v2 + v5),  2);
+    var c1 = LS((v2 + (-1*v5)),  2);
+    var a3 = LS((v3 + v4),  2); //AdditionOp 
+    var c0 = LS((v3 + (-1*v4)),  2); 
+    var b0 = a0 + a3;
+    var b1 = a1 +  a2 ;
     var b2 = a1 + (-1*a2);
     var b3 = a0 + (-1*a3);
     var b0b1Add1 = b0 + b1; 
     
     
-    var tmp_1 = for_one(assign_array, {array:context.tmp, MSCALE_val: MSCALE(multiply_apx(c1d4, (b0b1Add1), context.bt[9]))}, i);
-    //tmp[i] = MSCALE(multiply_apx(c1d4, (b0b1Add1), context.bt[7]));//MultiplicationOp
+    var tmp_1 = for_one(assign_array, {array:context.tmp, MSCALE_val: MSCALE(c1d4 * (b0b1Add1))}, i);
+    //tmp[i] = MSCALE(c1d4 * (b0b1Add1));//MultiplicationOp
     var b0b1Sub1 = b0 + (-1*b1); //AdditionOp
-    var tmp_2 = for_one(assign_array, {array:tmp_1, MSCALE_val: MSCALE(multiply_apx(c1d4, (b0b1Sub1),context.bt[10]))}, i+32);
+    var tmp_2 = for_one(assign_array, {array:tmp_1, MSCALE_val: MSCALE(c1d4 * (b0b1Sub1))}, i+32);
     
     //tmp[i + 32] = MSCALE(c1d4 * (b0b1Sub1)); //MultiplicationOp
    
 
-    var c3d8b2Mul = multiply_apx(c3d8, b2, context.bt[11]);//MultiplicationOp
-    var c1d8b3Mul = multiply_apx(c1d8, b3, context.bt[12]);//MultiplicationOp
-    var c3d8b3Mul = multiply_apx(c3d8, b3, context.bt[13]);//MultiplicationOp
-    var c1d8b2Mul = multiply_apx(c1d8, b2, context.bt[14]);//MultiplicationOp
+    var c3d8b2Mul = c3d8 * b2;//MultiplicationOp
+    var c1d8b3Mul = c1d8 *  b3;//MultiplicationOp
+    var c3d8b3Mul = c3d8 *  b3;//MultiplicationOp
+    var c1d8b2Mul = c1d8 * b2;//MultiplicationOp
     
     
     var tmp_3 = for_one(assign_array, {array:tmp_2, MSCALE_val:MSCALE(c3d8b2Mul+ c1d8b3Mul)}, i+16);
@@ -457,10 +447,10 @@ var dct_first_loop_body = function(context, i){
     
     var b0_2 = MSCALE(c1d4 *c2c1Temp);//MultiplicationOp
     var b1_2 = MSCALE(c1d4 * (c2c1Temp2));
-    var a0_2 = add_apx(c0, b0_2, context.bt[15]);
+    var a0_2 = c0 + b0_2;
     var a1_2 = c0 - b0_2;
     var a2_2 = c3 - b1_2;
-    var a3_2 = add_apx(c3, b1_2, context.bt[16]);
+    var a3_2 = c3 + b1_2;
     var c7d16a0Mul =  c7d16 * a0_2;
     var c1d16a3Mul = c1d16 * a3_2;
     var c3d16a2Mul =  c3d16 * a2_2;
@@ -546,8 +536,6 @@ var dct_second_loop_body = function(context, i) {
 
 
 
-
-
 var dct = function(inqueue, dcten, qen, tmp, bt, outqueue) {
     var first_loop_context = {inqueue:inqueue, dcten: dcten, qen: qen, tmp:tmp, bt: bt};
     var dct_first_loop_result = for_loop_general(dct_first_loop_body, first_loop_context, 0, 8);
@@ -556,13 +544,12 @@ var dct = function(inqueue, dcten, qen, tmp, bt, outqueue) {
     return dct_second_loop_result.outqueue;
 }
 
-
 //----------------------------------------------------
 ////----------------------------------------------------
 ////---------module_name::: get_one_sample_from_dct
 ////---------functionlity::: generate one input sample, and calculate the 
 //-------------------------  accurate and inaccurate dct. Inaccuracy amount
-//------------------------   is determined by bt_array. This function returns
+//------------------------   is determined by br_array. This function returns
 //------------------------   SNR for one sample
 ////----------------------------------------------------
 ////----------------------------------------------------
@@ -570,11 +557,7 @@ var get_one_sample_from_dct = function(){
     var file_lines = get_file_lines('dct_in_golden.txt');
     var inqueue =  get_inqueue_from_file == 1 ? for_loop(convert_to_char, 
             file_lines[0].split(""), 0, 64) :  
-        for_loop(function() {return randomInteger(253)+2}, [] , 0, 64); //a random integer
-                                                    // is selected from 1 to 255
-                                                    //we exclude 0,1 to avoid
-                                                    //problem caused by noise being zero
-                                                    // in SNR calculations
+        for_loop(function() {return randomInteger(255)}, [] , 0, 64);
 
     var tmp = for_loop(function() {return 1}, [] , 0, 64); //intitalize tmp array with 1
                                               //in it (doesn't matter 
@@ -584,26 +567,23 @@ var get_one_sample_from_dct = function(){
                                                     //what the number is)
     var qen = true;
     var dcten = qen;
-    var bt_no_error = for_loop(function() {return 0}, [] , 0, bt_array.length); //intitalize tmp array with 1
-
-
+    var bt_no_error = [0, 0];
+    
     var accurate = dct(inqueue, dcten, qen, tmp, bt_no_error, outqueue);
-    var inaccurate = dct(inqueue, dcten, qen, tmp, bt_array, outqueue);
+    var inaccurate = dct(inqueue, dcten, qen, tmp, br_array, outqueue);
     
     if (get_inqueue_from_file) { 
         console.log(accurate); 
     } 
     var error = subtract_two_arrays(accurate, inaccurate)
-    if (accumulate(error) == 0) {
-        console.log("Can not have an input with no errors, this results in SNR=infinity");
-        return Infinity;
+    if (error == 0) {
+     return Infinity;
     }
     else {
         return std(accurate)/std(error) 
     }
     //return mean(error);
 }
-
 
 
 //--- main 
@@ -614,12 +594,14 @@ var get_one_sample_from_dct = function(){
 ////----------------------------------------------------
 ////----------------------------------------------------
 var main = function() {
+    console.log("Note: If one of the samples don't result in any error, it results in SNR equal to Infity");
     var snr_results = repeat(number_of_repetition, get_one_sample_from_dct);
     if (!get_inqueue_from_file) { 
         console.log("mean of snr", mean(snr_results)); 
         console.log("std of snr", std(snr_results)); 
     }
 }
+
 
 /*
 //writing the inqueue of a string char by char

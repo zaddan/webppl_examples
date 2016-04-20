@@ -1,0 +1,48 @@
+/*
+var foo_lower = function(a) {
+   return 5*a;
+}
+var foo_higher = function (a, foo_lower) {
+   return foo_lower(a)
+}
+console.log(foo_higher(15, foo_lower));
+*/
+
+console.log("-------bernoulli with euqal prob")
+var dis_example = function() {
+   var b = sample(bernoulliERP, [0.5]);
+   return b;
+}
+console.log(Enumerate(dis_example));
+
+
+
+console.log("***********************************************************************")
+console.log("***********************************************************************")
+console.log("-------another bernoulli")
+var dis_example_2 = function() {
+   var a = sample(bernoulliERP, [0.25]);
+   if (a) {
+        return -3;
+   }
+   return a 
+}
+console.log(Enumerate(dis_example_2));
+
+console.log("***********************************************************************")
+console.log("***********************************************************************")
+console.log("-------distribution")
+var foo = function() {
+   var a = randomInteger(6); 
+   if ( a>=0 && a <3) {
+      return 20;
+   }
+   if ( a>=3 && a <5) {
+      return 40;
+   }
+   if ( a== 5){
+      return 60;
+   }
+}
+console.log(Enumerate(foo));
+return 1;

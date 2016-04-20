@@ -9,20 +9,10 @@ var get_inqueue_from_file = 0;  //if set to 1, the inqueue would be populated
                                 //using an input file
 var number_of_repetition = get_inqueue_from_file == 1 ? 1 : 10;
 
-var rounding_error_distribution_foo = function(a, b , num_of_bits){
+var error_distribution_foo = function(lower_bound, upper_bound) { 
                                                 //function determininig the 
-    var step = Math.pow(2, num_of_bits - 1)	
-    if (num_of_bits == 0) {
-        return 0;
-    }
-    return uniform(-1*(step/2), step/2);
-}
-
-var overclocking_error_distribution_foo = function(a, b, num_of_bits){
-    var step = Math.pow(2, num_of_bits - 1)	
-    //---Note: bernoulli distribution for error (associated with overclocking or 
-    //         overvolting + a mux with carry input uniformly between 0 and 1
-    return (step-1)*sample(bernoulliERP, [.5])
+                                                //error distribution
+    return uniform(lower_bound, upper_bound)
 }
 
 
@@ -39,6 +29,7 @@ var get_file_lines = function(file_name) {
     var file_lines = fileContents.toString().split('\n');
     return file_lines;
 }
+
 
 
 //-----------------------------------------------------------------
@@ -189,11 +180,6 @@ var for_loop = function(k, context, counter, upper_bound) {
   }
 }
 
-
-
-
-
-
 //----------------------------------------------------
 ////----------------------------------------------------
 ////---------module_name::: for_each
@@ -272,18 +258,15 @@ var for_one = function(k , for_one_context, index) {
 
 //----------------------------------------------------
 ////----------------------------------------------------
-////---------module_name::: multiply_apx
+////---------module_name::: multiply_round
+//-----------cuntionality::: multiply,truncate then round
 ////----------------------------------------------------
 ////----------------------------------------------------
-var multiply_apx= function(a, b, num_of_bits, error_dis) {
-    //an additive model 
-    return a * b + error_dist(a, b, num_of_bits);
-    
-    
-    /* 
-   //---Note: the following is the seogoo's implementation of rounding. was replaced with a probabilistic model  
+var multiply_round = function(a, b, num_of_bits) {
    var abs_a = Math.abs(a);
    var abs_b = Math.abs(b);
+   /* 
+   //---Note: the following is the seogoo's implementation of rounding. was replaced with a probabilistic model  
    var a_sign = (abs_a == a ? 1 : -1);
    var b_sign =  (abs_b == b ? 1 : -1);
    var calc_sign = a_sign * b_sign;
@@ -291,6 +274,18 @@ var multiply_apx= function(a, b, num_of_bits, error_dis) {
    var b_rounded = (abs_b >> (num_of_bits - 1)) == 1 ? (abs_b >> num_of_bits) + 1 : (abs_b >> num_of_bits)
    return calc_sign * ((a_rounded * b_rounded) << (2*num_of_bits));
    */
+    //---Distribution Type: uniform distribution for error 
+    if (num_of_bits == 0) {
+        return a * b; 
+    }else{
+        var step = Math.pow(2, num_of_bits - 1)	
+        return a * b +  error_distribution_foo(-1*(step/2), step/2)
+    } 
+
+    //---Note: bernoulli distribution for error (associated with overclocking or 
+    //         overvolting + a mux with carry input uniformly between 0 and 1
+    //return (a * b) + (step-1)*sample(bernoulliERP, [.5])
+
 }
 
 //----------------------------------------------------
@@ -299,10 +294,7 @@ var multiply_apx= function(a, b, num_of_bits, error_dis) {
 //-----------cuntionality::: add, truncate, then round
 ////----------------------------------------------------
 ////----------------------------------------------------
-var add_apx = function(a, b, num_of_bits, error_dis) {
-    //an additive model 
-    return a + b + error_dist(a, b, num_of_bits);
-   
+var add_round = function(a, b, num_of_bits) {
     /* 
     //the following is the seogoo's implementation of rounding. was replaced with a probabilistic model  
     var weight = Math.pow(2, num_of_bits) - 1;	
@@ -311,6 +303,19 @@ var add_apx = function(a, b, num_of_bits, error_dis) {
     var iap_b = weight&b;
     var b_op = (iap_b >> (num_of_bits - 1)) == 1 ? (b >> num_of_bits) + 1 : (b >> num_of_bits);
     */	
+    
+    //---Distribution Type: uniform distribution for error 
+    if (num_of_bits == 0) {
+    return a + b; 
+    }else{
+        var step = Math.pow(2, num_of_bits - 1);
+        return a + b +  error_distribution_foo(-1*(step/2), step/2);
+    } 
+    
+    //---Note: bernoulli distribution for error (associated with overclocking or 
+    //         overvolting + a mux with carry input uniformly between 0 and 1
+    //return a + b + (step-1)*sample(bernoulliERP, [.5])
+    //return ((a_op) + (b_op)) << num_of_bits;
 }
 
 
@@ -418,32 +423,32 @@ var dct_first_loop_body = function(context, i){
     var a0 = LS((v0+ v7),  2);
     //cout<< "a0: "<< a0<<endl; 
     
-    var c3 = LS((add_apx(v0, (-1*v7), context.bt[0])),  2); 
-    var a1 = LS((add_apx(v1, v6, context.bt[1])),  2) ;
-    var c2 = LS(add_apx(v1, (-1*v6), context.bt[2]),  2);
-    var a2 = LS(add_apx(v2, v5, context.bt[3]),  2);
-    var c1 = LS(add_apx(v2, (-1*v5), context.bt[4]),  2);
-    var a3 = LS(add_apx(v3, v4, context.bt[5]),  2); //AdditionOp 
-    var c0 = LS(add_apx(v3, (-1*v4), context.bt[6]),  2); 
-    var b0 = add_apx(a0, a3, context.bt[7]);
-    var b1 = add_apx(a1, a2, context.bt[8]) ;
+    var c3 = LS((add_round(v0, (-1*v7), context.bt[0])),  2); 
+    var a1 = LS((add_round(v1, v6, context.bt[1])),  2) ;
+    var c2 = LS(add_round(v1, (-1*v6), context.bt[2]),  2);
+    var a2 = LS(add_round(v2, v5, context.bt[3]),  2);
+    var c1 = LS(add_round(v2, (-1*v5), context.bt[4]),  2);
+    var a3 = LS(add_round(v3, v4, context.bt[5]),  2); //AdditionOp 
+    var c0 = LS(add_round(v3, (-1*v4), context.bt[6]),  2); 
+    var b0 = add_round(a0, a3, context.bt[7]);
+    var b1 = add_round(a1, a2, context.bt[8]) ;
     var b2 = a1 + (-1*a2);
     var b3 = a0 + (-1*a3);
     var b0b1Add1 = b0 + b1; 
     
     
-    var tmp_1 = for_one(assign_array, {array:context.tmp, MSCALE_val: MSCALE(multiply_apx(c1d4, (b0b1Add1), context.bt[9]))}, i);
-    //tmp[i] = MSCALE(multiply_apx(c1d4, (b0b1Add1), context.bt[7]));//MultiplicationOp
+    var tmp_1 = for_one(assign_array, {array:context.tmp, MSCALE_val: MSCALE(multiply_round(c1d4, (b0b1Add1), context.bt[9]))}, i);
+    //tmp[i] = MSCALE(multiply_round(c1d4, (b0b1Add1), context.bt[7]));//MultiplicationOp
     var b0b1Sub1 = b0 + (-1*b1); //AdditionOp
-    var tmp_2 = for_one(assign_array, {array:tmp_1, MSCALE_val: MSCALE(multiply_apx(c1d4, (b0b1Sub1),context.bt[10]))}, i+32);
+    var tmp_2 = for_one(assign_array, {array:tmp_1, MSCALE_val: MSCALE(multiply_round(c1d4, (b0b1Sub1),context.bt[10]))}, i+32);
     
     //tmp[i + 32] = MSCALE(c1d4 * (b0b1Sub1)); //MultiplicationOp
    
 
-    var c3d8b2Mul = multiply_apx(c3d8, b2, context.bt[11]);//MultiplicationOp
-    var c1d8b3Mul = multiply_apx(c1d8, b3, context.bt[12]);//MultiplicationOp
-    var c3d8b3Mul = multiply_apx(c3d8, b3, context.bt[13]);//MultiplicationOp
-    var c1d8b2Mul = multiply_apx(c1d8, b2, context.bt[14]);//MultiplicationOp
+    var c3d8b2Mul = multiply_round(c3d8, b2, context.bt[11]);//MultiplicationOp
+    var c1d8b3Mul = multiply_round(c1d8, b3, context.bt[12]);//MultiplicationOp
+    var c3d8b3Mul = multiply_round(c3d8, b3, context.bt[13]);//MultiplicationOp
+    var c1d8b2Mul = multiply_round(c1d8, b2, context.bt[14]);//MultiplicationOp
     
     
     var tmp_3 = for_one(assign_array, {array:tmp_2, MSCALE_val:MSCALE(c3d8b2Mul+ c1d8b3Mul)}, i+16);
@@ -457,10 +462,10 @@ var dct_first_loop_body = function(context, i){
     
     var b0_2 = MSCALE(c1d4 *c2c1Temp);//MultiplicationOp
     var b1_2 = MSCALE(c1d4 * (c2c1Temp2));
-    var a0_2 = add_apx(c0, b0_2, context.bt[15]);
+    var a0_2 = add_round(c0, b0_2, context.bt[15]);
     var a1_2 = c0 - b0_2;
     var a2_2 = c3 - b1_2;
-    var a3_2 = add_apx(c3, b1_2, context.bt[16]);
+    var a3_2 = add_round(c3, b1_2, context.bt[16]);
     var c7d16a0Mul =  c7d16 * a0_2;
     var c1d16a3Mul = c1d16 * a3_2;
     var c3d16a2Mul =  c3d16 * a2_2;
