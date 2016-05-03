@@ -364,24 +364,6 @@ var add_apx = function(a, b, num_of_bits, error) {
 
 
 //-----------------------------------------------------------------
-//-----------------parameters to set
-//-----------------------------------------------------------------
-//var bt_array = [4, 10, 2 ,4 ,5 ,6 ,1, 6, 1, 6, 1, 6, 3 , 1, 1, 2, 0]; //sets the
-                                                 //number of bits truncation on 
-                                                 //the instruction
-
-
-
-var bt_array = [0, 0, 0 ,0 ,1 ,2 ,3, 4, 4, 1, 1, 1, 1 , 1, 1, 2, 0]; //sets the
-                                                 //number of bits truncation on 
-
-
-var get_inqueue_from_file = 0;  //if set to 1, the inqueue would be populated
-                                //using an input file
-var number_of_repetition = get_inqueue_from_file == 1 ? 1 : 10;
-var error_array = for_loop(function() {return null}, [], 0, bt_array.length); 
-
-//-----------------------------------------------------------------
 //-------------- dct_webppl
 //-----------------------------------------------------------------
 var c1d4= 362;
@@ -628,9 +610,13 @@ var dct = function(inqueue, dcten, qen, tmp, bt, outqueue, error) {
 //------------------------   is determined by bt_array. This function returns
 //------------------------   SNR for one sample
 ////----------------------------------------------------
+
 ////----------------------------------------------------
-var get_one_sample_from_dct = function(){
-    var file_lines = get_file_lines('dct_input.txt');
+
+var get_one_sample_from_dct = function(bt_array, error_array, get_inqueue_from_file){
+    if (get_inqueue_from_file) { 
+        var file_lines = get_file_lines('dct_input.txt');
+    }
     var inqueue =  get_inqueue_from_file == 1 ? for_loop(convert_to_char, 
             file_lines[0].split(""), 0, 64) :  
         for_loop(function() {return randomInteger(253)+2}, [] , 0, 64); //a random integer
@@ -677,7 +663,18 @@ var get_one_sample_from_dct = function(){
 ////----------------------------------------------------
 ////----------------------------------------------------
 var main = function() {
-    var snr_results = repeat(number_of_repetition, get_one_sample_from_dct);
+    //-----------------------------------------------------------------
+    //-----------------parameters to set
+    //-----------------------------------------------------------------
+    var bt_array = [0, 0, 0 ,0 ,1 ,2 ,3, 4, 4, 1, 1, 1, 1 , 1, 1, 2, 0]; //sets the
+                                                                         //number of bits truncation on 
+    var error_array = for_loop(function() {return null}, [], 0, bt_array.length); //sets the
+                                                                        //error distributions
+    var get_inqueue_from_file = 0;  //if set to 1, the inqueue would be populated
+                                    //using an input file
+    var number_of_repetition = 10;
+
+    var snr_results = repeat(number_of_repetition, function() { return get_one_sample_from_dct(bt_array, error_array, get_inqueue_from_file)});
     if (!get_inqueue_from_file) { 
         console.log("mean of snr", mean(snr_results)); 
         console.log("std of snr", std(snr_results)); 
