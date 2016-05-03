@@ -11,39 +11,44 @@ node dct_webppl.js
 I couldn't find an easy way to split up the implementation into multiple files, thus,
 I lumped them all together in a file called dct_webppl.wppl. This file contains 
 functions for file handling, list handling, iteration primitives, ... and 
-most importantly, DCT (descrete cosine transform)
+most importantly, DCT (discrete cosine transform)
 
 ---High level--- 
 This application calculates the quality associated with a dct function when the instructions
 within the dct function are approximated. Approximation is done through rounding. The quality
 is measured using SNR. 
 
----Detailed---:
-The following step is taken toward the afformentioned goal:
+---Detailed Flow---:
+The following step is taken toward the aforementioned goal:
 1. a sample from input is generated (inqueue holds the main input)
 2. The input is fed through the dct to calculate both inaccurate and accurate results (outqueue)
-3. the inaccurate output is resulted through rounding certain instructions.
-    -The approximate add is called add_round
-    -The approximate multiply is called multiply_round
+3. The inaccurate output is resulted through rounding certain instructions.
+    -The approximate add is called add_apx
+    -The approximate multiply is called multiply_apx
     -the number of bits rounded is set in the bt_array (which sets the number of rounded
-        bits for the corresponding instruction that it is used for)
-4. the error (for one input) is calculated using the inaccurate and accurate values for 
+        bits for the corresponding instruction that it is used for). The error resulting from 
+        inaccurate calculation can be modeled in different ways(this error is passed as 
+        an argument to the add_apx and multiply_apx and is set in the error_array). We offer 3 different major ones to model the error:
+            1.explicit way (add_round_explicit && multiply_round_explicit): these  functions calculate the 
+                error precisely
+            2.implicit way, meaning using a distribution. We offered two prototype for this category, 
+                namely, rounding_uniform and rounding advanced. As the name suggests,
+                the uniform function simply models the error using an uniform distribution.
+                rounding_advance represent any sophisticated distribution defined by the programmer.
+        Note that the programmer decides how to populate the error_array. 
+4. End to End error of the program(for one input) is calculated using the inaccurate and accurate values for 
     that input. Error and accurate values are used to calculate the SNR for one input
 
-5. steps 1 through 4 are repeated (number_of_repetition times) and mean and std of SNR is calculated.
+5. Steps 1 through 4 are repeated (number_of_repetition times) and mean and std of SNR is calculated.
 
 
 //-----------------------------------------------------------------
-//-----------------parameters
+//-----------------parameters to set
 //-----------------------------------------------------------------
-parameters to set: 
 bt_array: sets the number of rounded bits for the corresponding instruction it is applied on
-
+error_array: sets the error model associated with the corresponding instruction
 get_inqueue_from_file: determines whether the input is acquired from a file(set to 1) or generated(set to 0) (almost always should be set to 0)
-
-error_distribution_foo: a function that determines the error distribution. currently set to uniform distribution
-
+error_distribution_foo: a function that determines the error distribution. Currently set to uniform distribution
 number_of_repetition: how many times the sampling+calculation(dct calculation) should be repeated
 
 
-   
