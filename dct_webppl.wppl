@@ -630,7 +630,7 @@ var dct = function(inqueue, dcten, qen, tmp, bt, outqueue, error) {
 ////----------------------------------------------------
 ////----------------------------------------------------
 var get_one_sample_from_dct = function(){
-    var file_lines = get_file_lines('dct_in_golden.txt');
+    var file_lines = get_file_lines('dct_input.txt');
     var inqueue =  get_inqueue_from_file == 1 ? for_loop(convert_to_char, 
             file_lines[0].split(""), 0, 64) :  
         for_loop(function() {return randomInteger(253)+2}, [] , 0, 64); //a random integer
@@ -696,3 +696,4 @@ var write_char_to_file = function(in_char) {
 
 
 main();
+return 1;

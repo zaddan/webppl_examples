@@ -48,7 +48,6 @@ The following step is taken toward the aforementioned goal:
 bt_array: sets the number of rounded bits for the corresponding instruction it is applied on
 error_array: sets the error model associated with the corresponding instruction
 get_inqueue_from_file: determines whether the input is acquired from a file(set to 1) or generated(set to 0) (almost always should be set to 0)
-error_distribution_foo: a function that determines the error distribution. Currently set to uniform distribution
 number_of_repetition: how many times the sampling+calculation(dct calculation) should be repeated
 
 
